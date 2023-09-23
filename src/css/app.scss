@@ -1,0 +1,13 @@
+// app global css in SCSS form
+
+@font-face {
+  font-family: 'Montserrat';
+  src:
+    url('../assets/fonts/Montserrat/Montserrat-Medium.eot'),
+    local('Montserrat-Medium'),
+    url('../assets/fonts/Montserrat/Montserrat-Medium.eot?#iefix')  format('embedded-opentype'),
+    url('../assets/fonts/Montserrat/Montserrat-Medium.woff')        format('woff'),
+    url('../assets/fonts/Montserrat/Montserrat-Medium.woff2')       format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
