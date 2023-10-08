@@ -21,7 +21,7 @@
 
               <div v-if="id.info" class="q-pa-sm q-ma-xs bg-deep-purple-2 flex column text-center justify-center" style="border-radius: 20px">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
-                <div>{{ id.info }}</div>
+                <div v-for="(t, i) in id.info" :key="i">{{ t }}</div>
                 <div v-if="currentLayer < id.layer">in {{ layersDiffInTime(currentLayer, id.layer) }}</div>
                 <div v-else>{{ layersDiffInTime(currentLayer, id.layer) }} ago</div>
               </div>
@@ -37,7 +37,7 @@
                   {{ v }}
                 </div>
                 <div>JUST NOW</div>
-                <div v-if="id.smh">{{ id.smh }} SMH</div>
+                <div v-if="id.smh">+{{ id.smh }}</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="q-pa-sm q-ma-xs bg-green-3 rounded-borders flex column text-center justify-center">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
@@ -45,7 +45,7 @@
                   {{ v }}
                 </div>
                 <div>{{ layersDiffInTime(id.layer, currentLayer) }} ago</div>
-                <div v-if="id.smh">{{ id.smh }} SMH</div>
+                <div v-if="id.smh">+{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
@@ -142,17 +142,13 @@ const beaconLayerTime = '2023-09-23T15:20:00+0300'
 const layerDurationMinutes = 5
 let serial = ref(0)
 
-type eventT = {time:Date, name:string}
+type eventT = {time:Date, info:string[]}
 const events:eventT[] = [
-  //{name: '[win', time: new Date('2023-10-01 23:00:00+0300')},
-  //{name: 'win]', time: new Date('2023-10-02 11:00:00+0300')},
-  {name: 'Ep6:', time: new Date('2023-10-06 11:00:00+0300')},
-  {name: '[win', time: new Date('2023-10-15 23:00:00+0300')},
-  {name: 'win]', time: new Date('2023-10-16 11:00:00+0300')},
-  {name: 'Ep7:', time: new Date('2023-10-20 11:00:00+0300')},
-  //{name: '[win', time: new Date('2023-10-29 23:00:00+0300')},
-  //{name: 'win]', time: new Date('2023-10-30 11:00:00+0300')},
-  //{name: 'Ep8:', time: new Date('2023-11-03 11:00:00+0300')},
+  {time: new Date('2023-10-06 11:00:00+0300'), info: ['Epoch 5 End', 'Epoch 6 Begin']},
+  {time: new Date('2023-10-15 23:00:00+0300'), info: ['PoST 5', 'Begin']},
+  {time: new Date('2023-10-16 11:00:00+0300'), info: ['PoST 5', '12h End']},
+  {time: new Date('2023-10-20 11:00:00+0300'), info: ['PoST 5', '108h End']},
+  {time: new Date('2023-10-20 11:00:00+0300'), info: ['Epoch 6 End', 'Epoch 7 Begin']},
 ]
 
 const coinbase = ref('')
@@ -193,13 +189,13 @@ const nodeColor = (_node:string) => {
   return n ? n.color : null;
 }
 
-type layerT = {nodes?:string[], layer:number, smh?:number, info?:string}
+type layerT = {nodes?:string[], layer:number, smh?:number, info?:string[]}
 
 const eligLayersIdList = ():layerT[] => {
   const merged:layerT[] = []
 
   events.forEach(e => {
-    merged.push({layer: getLayerByTime(e.time), info: e.name})
+    merged.push({layer: getLayerByTime(e.time), info: e.info})
   })
 
   nodes.value.forEach(n => {
