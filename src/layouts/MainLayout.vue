@@ -17,9 +17,15 @@
 
           <div class="row q-pa-sm justify-center" >
 
-            <template v-for="id in eligLayersIdList()" :key="id.node + '_' + id.layer">
+            <template v-for="id in eligLayersIdList()" :key="id.layer">
 
-              <div v-if="id.layer === -1" class="q-pa-sm q-ma-xs bg-blue-4 flex column text-center justify-center" style="border-radius: 20px">
+              <div v-if="id.info" class="q-pa-sm q-ma-xs bg-deep-purple-2 flex column text-center justify-center" style="border-radius: 20px">
+                <div><strong>{{ numberFormat(id.layer) }}</strong></div>
+                <div>{{ id.info }}</div>
+                <div v-if="currentLayer < id.layer">in {{ layersDiffInTime(currentLayer, id.layer) }}</div>
+                <div v-else>{{ layersDiffInTime(currentLayer, id.layer) }} ago</div>
+              </div>
+              <div v-else-if="id.layer === -1" class="q-pa-sm q-ma-xs bg-blue-4 flex column text-center justify-center" style="border-radius: 20px">
                 <div><strong>{{ numberFormat(currentLayer) }}</strong></div>
                 <div>We are here</div>
                 <div>{{ nowDate() }}</div>
@@ -31,7 +37,7 @@
                   {{ v }}
                 </div>
                 <div>JUST NOW</div>
-                <div v-if="id.smh">+{{ id.smh }} SMH</div>
+                <div v-if="id.smh">{{ id.smh }} SMH</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="q-pa-sm q-ma-xs bg-green-3 rounded-borders flex column text-center justify-center">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
@@ -39,8 +45,8 @@
                   {{ v }}
                 </div>
                 <div>{{ layersDiffInTime(id.layer, currentLayer) }} ago</div>
-                <div v-if="id.smh">+{{ id.smh }} SMH</div>
-                <div v-else-if="coinbase != ''"><q-icon name="report" color="red-8" size="20px"/></div>
+                <div v-if="id.smh">{{ id.smh }} SMH</div>
+                <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
@@ -131,10 +137,23 @@
 import {computed, onBeforeMount, ref, watch} from 'vue'
 import { copyToClipboard, Notify } from 'quasar'
 
-const beaconLayerId = 12201
-const beaconLayerTime = '2023-08-25T19:45:00+0300'
+const beaconLayerId = 20500
+const beaconLayerTime = '2023-09-23T15:20:00+0300'
 const layerDurationMinutes = 5
 let serial = ref(0)
+
+type eventT = {time:Date, name:string}
+const events:eventT[] = [
+  //{name: '[win', time: new Date('2023-10-01 23:00:00+0300')},
+  //{name: 'win]', time: new Date('2023-10-02 11:00:00+0300')},
+  {name: 'Ep6:', time: new Date('2023-10-06 11:00:00+0300')},
+  {name: '[win', time: new Date('2023-10-15 23:00:00+0300')},
+  {name: 'win]', time: new Date('2023-10-16 11:00:00+0300')},
+  {name: 'Ep7:', time: new Date('2023-10-20 11:00:00+0300')},
+  //{name: '[win', time: new Date('2023-10-29 23:00:00+0300')},
+  //{name: 'win]', time: new Date('2023-10-30 11:00:00+0300')},
+  //{name: 'Ep8:', time: new Date('2023-11-03 11:00:00+0300')},
+]
 
 const coinbase = ref('')
 const nodes = ref([
@@ -142,14 +161,14 @@ const nodes = ref([
     serial: serial.value++,
     show: true,
     node: 'ABC123',
-    layers: '12100, 12190, 12210, 12250, 12299, 12302, 12400, 13500, 14636, 15720, 16009',
+    layers: '24100, 24190, 24210, 24250, 24299, 25302, 25400, 26500, 26636, 27720, 27009',
     color: '#b9ebbb'
   },
   {
     serial: serial.value++,
     show: true,
     node: 'XYZ321',
-    layers: '[{"layer": 12189, "slots": 1}, {"layer": 14250, "slots": 1}, {"layer": 15555, "slots": 1}]',
+    layers: '[{"layer": 25189, "slots": 1}, {"layer": 25250, "slots": 1}, {"layer": 28001, "slots": 1}]',
     color: '#c5a5e6'
   }
 ])
@@ -158,18 +177,31 @@ const loading = ref(true)
 let rewards = [{layer: 0, total: 0}]
 
 const currentLayer = computed(() => {
-  const layersGapMinutes = (Date.now() - new Date(beaconLayerTime)) / 1000 / 60
+  const layersGapMinutes = (Date.now() - new Date(beaconLayerTime).getTime()) / 1000 / 60
   const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
   return beaconLayerId + layersDelta
 })
+
+const getLayerByTime = (time:Date):number => {
+  const layersGapMinutes = (time.getTime() - new Date(beaconLayerTime).getTime()) / 1000 / 60
+  const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
+  return beaconLayerId + layersDelta
+}
 
 const nodeColor = (_node:string) => {
   const n = nodes.value.find(n => n.node === _node)
   return n ? n.color : null;
 }
 
-const eligLayersIdList = () => {
-  const merged:{nodes:string[], layer:number, smh?:number}[] = []
+type layerT = {nodes?:string[], layer:number, smh?:number, info?:string}
+
+const eligLayersIdList = ():layerT[] => {
+  const merged:layerT[] = []
+
+  events.forEach(e => {
+    merged.push({layer: getLayerByTime(e.time), info: e.name})
+  })
+
   nodes.value.forEach(n => {
     if (n.show) {
       const logStyleLayers = [...n.layers.matchAll(/"layer": (\d+)/g)].map(e => Number(e[1]))
@@ -187,10 +219,11 @@ const eligLayersIdList = () => {
   })
   merged.sort((a,b)=>a.layer-b.layer)
 
-  const grouped:{nodes:string[], layer:number, smh?:number}[] = []
-  let last
+  // group by layer
+  const grouped:layerT[] = []
+  let last:layerT
   merged.forEach(m => {
-    if (last && last.layer === m.layer) {
+    if (last && last.layer === m.layer && m.nodes && last.nodes) {
       last.nodes.push(m.nodes[0])
     } else {
       grouped.push(m)
@@ -217,7 +250,7 @@ const nodeCreate = () => {
     show: true,
     node: serial.value.toString(16).padStart(4, '0'),
     layers: '',
-    color: null
+    color: '',
   })
 }
 
@@ -225,8 +258,8 @@ const nodeDelete = (_serial:number) => {
   nodes.value = [ ... nodes.value.filter(n => n.serial != _serial) ]
 }
 
-const layersDiffInTime = (l0, l1) => {
-  let sec = (l1 - l0) * layerDurationMinutes * 60
+const layersDiffInTime = (l0:number, l1:number) => {
+  let sec = Math.abs(l1 - l0) * layerDurationMinutes * 60
   let a = []
   if (sec > 60*60*24) {
     const d = Math.floor(sec / 60 / 60 / 24)
@@ -247,7 +280,7 @@ const layersDiffInTime = (l0, l1) => {
 
 const nowDate = () => {
   const d = new Date(Date.now())
-  return [d.getDate(), d.getMonth(), d.getFullYear()]
+  return [d.getDate(), d.getMonth() + 1, d.getFullYear()]
     .map(e => e.toString().padStart(2, '0'))
     .join('-')
 }
@@ -282,7 +315,7 @@ const rewardsCheck = async () => {
     //const wallets = coinbase.value.split(' ')
     const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
     for (const w of wallets) {
-      const uri = `https://mainnet-explorer-1-api.spacemesh.network/accounts/${w}/rewards`
+      const uri = `https://mainnet-explorer-api.spacemesh.network/accounts/${w}/rewards`
       let pageCount = 0
       await fetch(uri)
         .then(async index => {
