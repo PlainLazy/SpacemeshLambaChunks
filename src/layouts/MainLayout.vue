@@ -2,10 +2,102 @@
   <q-layout view="hhh lpR lFf" style="min-width: 870px">
 
     <q-header class="bg-white" style="color: black; box-shadow: 0 -8px 34px rgba(200, 200, 200, 0.8);">
-      <q-toolbar style="height: 70px;" class="q-pa-none justify-center">
+      <q-toolbar style="height: 64px;" class="q-pa-none">
+        <q-btn flat @click="drawer = true" icon="menu" size="25px" />
+        <q-space/>
         SpaceMesh Lamba Chunks
+        <q-space/>
       </q-toolbar>
     </q-header>
+
+    <q-drawer
+      v-model="drawer"
+      :width="810"
+      behavior="mobile"
+      bordered
+      class="q-ma-sm text-center"
+    >
+
+      <div class="row items-center">
+        <q-input
+          v-model="coinbase"
+          label="coinbase sm1qqqqqqq... or several with any separator"
+          filled dense stack-label
+          style="width: 795px"
+        >
+          <template v-slot:prepend>
+            <q-icon name="account_balance_wallet" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
+          </template>
+          <template v-slot:append>
+            <q-icon name="send" class="cursor-pointer" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
+          </template>
+        </q-input>
+      </div>
+
+      <div class="row items-center no-wrap" v-for="n in nodes" :key="n.serial">
+        <q-input
+          filled dense stack-label
+          v-model="n.node"
+          maxlength="10"
+          label="Node"
+          type="text"
+          :style="{width: '190px'}"
+        >
+          <template v-slot:prepend>
+            <q-icon
+              :name="n.show ? 'visibility' : 'visibility_off'"
+              :style="{color: n.show ? '#217ad2' : '#636363'}"
+              size="20px" class="cursor-pointer" @click="n.show = !n.show"
+            />
+          </template>
+          <template v-slot:append>
+            <q-icon name="palette" class="cursor-pointer material-icons-outlined" size="20px" :style="{'color': n.color, 'text-shadow': n.color ? '0 2px 10px rgba(0,0,0,0.6)' : ''}">
+              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                <q-color v-model="n.color" />
+              </q-popup-proxy>
+            </q-icon>
+            <q-icon name="close" v-if="n.color !== ''" flat class="cursor-pointer" @click="n.color = ''" />
+          </template>
+        </q-input>
+        <q-input
+          filled dense stack-label
+          v-model="n.layers"
+          label="Eligible for rewards in layers | proposal eligibility for an epoch"
+          type="text"
+          class="q-ma-xs"
+          style="width: 600px"
+        >
+          <template v-slot:append>
+            <q-icon name="adjust" class="cursor-pointer" v-if="!isLayersOkay(n.layers)">
+              <q-menu self="top middle" anchor="bottom middle">
+                <q-list>
+                  <q-item clickable v-close-popup class="bg-white text-black">
+                    <q-item-section @click="nodeAdjust(n.serial)">
+                      Adjust
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-icon>
+            <q-icon v-if="nodes.length > 1" name="delete" color="red-5" class="cursor-pointer">
+              <q-menu self="top middle" anchor="bottom middle">
+                <q-list>
+                  <q-item clickable v-close-popup class="bg-red text-white">
+                    <q-item-section @click="nodeDelete(n.serial)">
+                      Delete
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-icon>
+          </template>
+        </q-input>
+
+      </div>
+
+      <q-btn label="ADD NODE" flat size="10px" style="height: 40px" @click="nodeCreate" />
+
+    </q-drawer>
 
     <q-page-container class="bg-blue-2">
       <q-page class="items-center justify-center column">
@@ -59,49 +151,6 @@
 
           </div>
 
-          <div class="row items-center">
-            <q-input
-              v-model="coinbase"
-              label="coinbase sm1qqqqqqq... (or several with any separator)"
-              filled dense stack-label
-              style="width: 550px"
-            />
-            <q-btn flat icon="send" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
-          </div>
-
-          <div class="row items-center no-wrap" v-for="n in nodes" :key="n.serial">
-            <q-checkbox v-model="n.show" />
-            <q-input
-              filled dense stack-label
-              v-model="n.node"
-              maxlength="8"
-              label="Node"
-              type="text"
-              class="q-ma-xs"
-              :style="{width: '160px', backgroundColor: n.color}"
-            >
-              <template v-slot:append>
-                <q-icon name="palette" class="cursor-pointer material-icons-outlined" size="20px">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-color v-model="n.color" />
-                  </q-popup-proxy>
-                </q-icon>
-                <q-btn icon="close" v-if="n.color != null" flat style="width: 16px" @click="n.color = null" />
-              </template>
-            </q-input>
-            <q-input
-              filled dense stack-label
-              v-model="n.layers"
-              label="Eligible for rewards in layers | proposal eligibility for an epoch"
-              type="text"
-              class="q-ma-xs"
-              style="width: 600px"
-            />
-            <q-btn v-if="nodes.length > 1" icon="delete" flat size="10px" color="red-6" style="height: 40px" @click="nodeDelete(n.serial)" />
-          </div>
-
-          <q-btn label="+ NODE" flat size="10px" style="height: 40px" @click="nodeCreate" />
-
           <div class="text-center q-ma-lg">
             <div class="text-grey content-center text-center text-caption">
               <span style="font-size: 16px" class="q-mr-sm">🥔</span>
@@ -137,6 +186,7 @@
 import {computed, onBeforeMount, ref, watch} from 'vue'
 import { copyToClipboard, Notify } from 'quasar'
 
+const drawer = ref(false)
 const beaconLayerId = 20500
 const beaconLayerTime = '2023-09-23T15:20:00+0300'
 const layerDurationMinutes = 5
@@ -206,7 +256,7 @@ const eligLayersIdList = ():layerT[] => {
           merged.push({nodes: [n.node], layer: l})
         })
       } else {
-        const uiStyleLayers = (n.layers.match(/\d+/g) || []).map(a=>Number(a)).sort((a,b)=>(a-b))
+        const uiStyleLayers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
         uiStyleLayers.forEach(l => {
           merged.push({nodes: [n.node], layer: l})
         })
@@ -253,6 +303,28 @@ const nodeCreate = () => {
 const nodeDelete = (_serial:number) => {
   nodes.value = [ ... nodes.value.filter(n => n.serial != _serial) ]
 }
+
+const nodeAdjust = (_serial:number) => {
+  const n = nodes.value.find(e => e.serial === _serial)
+  if (n) {
+    let layerNumbers:number[] = []
+    const logStyleLayers = [...n.layers.matchAll(/"layer": (\d+)/g)].map(e => Number(e[1]))
+    if (logStyleLayers.length > 0) {
+      logStyleLayers.forEach(l => {
+        layerNumbers.push(l)
+      })
+    } else {
+      const uiStyleLayers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
+      uiStyleLayers.forEach(l => {
+        layerNumbers.push(l)
+      })
+    }
+    layerNumbers.sort((a,b)=>a-b)
+    n.layers = layerNumbers.join(' ')
+  }
+}
+
+const isLayersOkay = (layers:string):boolean => (/^[\d\s]*$/.test(layers))
 
 const layersDiffInTime = (l0:number, l1:number) => {
   let sec = Math.abs(l1 - l0) * layerDurationMinutes * 60
@@ -303,6 +375,8 @@ const numberFormat = (n:number):string => {
 const pageSize = 500
 
 const rewardsCheck = async () => {
+
+  drawer.value = false
 
   rewards = []
   loading.value = true
