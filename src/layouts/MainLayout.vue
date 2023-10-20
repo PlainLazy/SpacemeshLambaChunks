@@ -194,11 +194,15 @@ let serial = ref(0)
 
 type eventT = {time:Date, info:string[]}
 const events:eventT[] = [
-  {time: new Date('2023-10-06 11:00:00+0300'), info: ['Epoch 5 End', 'Epoch 6 Begin']},
-  {time: new Date('2023-10-15 23:00:00+0300'), info: ['PoST 5', 'Begin']},
-  {time: new Date('2023-10-16 11:00:00+0300'), info: ['PoST 5', '12h End']},
-  {time: new Date('2023-10-20 11:00:00+0300'), info: ['PoST 5', '108h End']},
+  //{time: new Date('2023-10-06 11:00:00+0300'), info: ['Epoch 5 End', 'Epoch 6 Begin']},
+  //{time: new Date('2023-10-15 23:00:00+0300'), info: ['PoST 5', 'Begin']},
+  //{time: new Date('2023-10-16 11:00:00+0300'), info: ['PoST 5', '12h End']},
+  //{time: new Date('2023-10-20 11:00:00+0300'), info: ['PoST 5', '108h End']},
   {time: new Date('2023-10-20 11:00:00+0300'), info: ['Epoch 6 End', 'Epoch 7 Begin']},
+  {time: new Date('2023-10-29 23:00:00+0300'), info: ['PoST 6', 'Begin']},
+  {time: new Date('2023-10-30 10:00:00+0300'), info: ['PoST 6', '12h End']},
+  {time: new Date('2023-11-03 11:00:00+0300'), info: ['PoST 6', '108h End']},
+  {time: new Date('2023-11-03 11:00:00+0300'), info: ['Epoch 7 End', 'Epoch 8 Begin']},
 ]
 
 const coinbase = ref('')
