@@ -26,10 +26,10 @@
           style="width: 795px"
         >
           <template v-slot:prepend>
-            <q-icon name="account_balance_wallet" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
+            <q-icon name="account_balance_wallet" class="material-icons-outlined" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
           </template>
           <template v-slot:append>
-            <q-icon name="send" class="cursor-pointer" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
+            <q-icon name="send" class="cursor-pointer material-icons-outlined" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
           </template>
         </q-input>
       </div>
@@ -47,11 +47,12 @@
             <q-icon
               :name="n.show ? 'visibility' : 'visibility_off'"
               :style="{color: n.show ? '#217ad2' : '#636363'}"
-              size="20px" class="cursor-pointer" @click="n.show = !n.show"
+              size="20px" class="cursor-pointer material-icons-outlined" @click="n.show = !n.show"
             />
           </template>
           <template v-slot:append>
-            <q-icon name="palette" class="cursor-pointer material-icons-outlined" size="20px" :style="{'color': n.color, 'text-shadow': n.color ? '0 2px 10px rgba(0,0,0,0.6)' : ''}">
+            <q-icon name="palette" class="cursor-pointer -material-icons-outlined" size="20px"
+                    :style="{'color': n.color, 'text-shadow': n.color ? '0 2px 2px rgba(0,0,0,0.6)' : ''}">
               <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                 <q-color v-model="n.color" />
               </q-popup-proxy>
@@ -79,7 +80,7 @@
                 </q-list>
               </q-menu>
             </q-icon>
-            <q-icon v-if="nodes.length > 1" name="delete" color="red-5" class="cursor-pointer">
+            <q-icon v-if="nodes.length > 1" name="delete" color="red-5" class="cursor-pointer material-icons-outlined">
               <q-menu self="top middle" anchor="bottom middle">
                 <q-list>
                   <q-item clickable v-close-popup class="bg-red text-white">
@@ -138,7 +139,7 @@
                 </div>
                 <div>{{ layersDiffInTime(id.layer, currentLayer) }} ago</div>
                 <div v-if="id.smh">+{{ id.smh }}</div>
-                <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
+                <div v-else-if="coinbase !== ''"><q-icon name="report" class="material-icons-outlined" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
