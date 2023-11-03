@@ -108,6 +108,17 @@
         </template>
         <template v-else>
 
+          <svg width="100%" height="20" viewBox="0 0 1000 20" preserveAspectRatio="none" style="width: 100%">
+            <rect x="0" y="0" :width="currentPS * 1000" height="20" fill="rgb(165, 214, 167)" />
+            <rect :x="currentPS * 1000" y="0" :width="(1-currentPS) * 1000" height="20" fill="rgb(178, 223, 219)" />
+            <g v-for="l in eligLayersIdList()" :key="l.layer">
+              <rect
+                v-if="l.nodes && l.pos"
+                :x="l.pos * 999" y="0" width="1" height="20" :fill="nodeColor(l.nodes[0])"
+              />
+            </g>
+          </svg>
+
           <div class="row q-pa-sm justify-center" >
 
             <template v-for="id in eligLayersIdList()" :key="id.layer">
@@ -120,7 +131,9 @@
               </div>
               <div v-else-if="id.layer === -1" class="q-pa-sm q-ma-xs bg-blue-4 flex column text-center justify-center" style="border-radius: 20px">
                 <div><strong>{{ numberFormat(currentLayer) }}</strong></div>
-                <div>We are here</div>
+                <div>
+                  We are here
+                </div>
                 <div>{{ nowDate() }}</div>
                 <div>{{ nowTime() }}</div>
               </div>
@@ -129,7 +142,9 @@
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
                 </div>
-                <div>JUST NOW</div>
+                <div>
+                  JUST NOW
+                </div>
                 <div v-if="id.smh">+{{ id.smh }}</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="q-pa-sm q-ma-xs bg-green-3 rounded-borders flex column text-center justify-center">
@@ -189,7 +204,9 @@ import { copyToClipboard, Notify } from 'quasar'
 
 const drawer = ref(false)
 const beaconLayerId = 20500
-const beaconLayerTime = '2023-09-23T15:20:00+0300'
+const beaconLayerTime = new Date('2023-09-23T15:20:00+0300')
+const beaconEpochNumber = 6
+const beaconEpochBegin = new Date('2023-10-06 11:00:00+0300')
 const layerDurationMinutes = 5
 let serial = ref(0)
 
@@ -199,12 +216,27 @@ const events:eventT[] = [
   //{time: new Date('2023-10-15 23:00:00+0300'), info: ['PoST 5', 'Begin']},
   //{time: new Date('2023-10-16 11:00:00+0300'), info: ['PoST 5', '12h End']},
   //{time: new Date('2023-10-20 11:00:00+0300'), info: ['PoST 5', '108h End']},
-  {time: new Date('2023-10-20 11:00:00+0300'), info: ['Epoch 6 End', 'Epoch 7 Begin']},
-  {time: new Date('2023-10-29 23:00:00+0300'), info: ['PoST 6', 'Begin']},
-  {time: new Date('2023-10-30 11:00:00+0300'), info: ['PoST 6', '12h End']},
-  {time: new Date('2023-11-03 11:00:00+0300'), info: ['PoST 6', '108h End']},
-  {time: new Date('2023-11-03 11:00:00+0300'), info: ['Epoch 7 End', 'Epoch 8 Begin']},
+  //{time: new Date('2023-10-20 11:00:00+0300'), info: ['Epoch 6 End', 'Epoch 7 Begin']},
+  //{time: new Date('2023-10-29 23:00:00+0300'), info: ['PoST 6', 'Begin']},
+  //{time: new Date('2023-10-30 10:00:00+0300'), info: ['PoST 6', '12h End']},
+  //{time: new Date('2023-11-03 11:00:00+0300'), info: ['PoST 6', '108h End']},
+  //{time: new Date('2023-11-03 11:00:00+0300'), info: ['Epoch 7 End', 'Epoch 8 Begin']},
+  //{time: new Date('2023-11-12 23:00:00+0300'), info: ['PoST 7', 'Begin']},
+  //{time: new Date('2023-11-13 10:00:00+0300'), info: ['PoST 7', '12h End']},
+  //{time: new Date('2023-11-17 11:00:00+0300'), info: ['PoST 7', '108h End']},
 ]
+
+const now = new Date()
+const eDurationMs = 14*24*60*60*1000  // 2 weeks
+const official12hOffsetMs = 228*60*60*1000  // -228h
+const official12hOffsetMs2 = (228+12)*60*60*1000  // +12h
+const ePassedNum = Math.floor((now.getTime() - beaconEpochBegin.getTime()) / eDurationMs)
+const eCurrentNum = beaconEpochNumber + ePassedNum
+const eCurrentBegin = beaconEpochBegin.getTime() + eDurationMs * (eCurrentNum - beaconEpochNumber)
+events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum-1} End`, `Epoch ${eCurrentNum} Begin`]})
+events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin']})
+events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, '12h End']})
+events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum}`, '108h End']})
 
 const coinbase = ref('')
 const nodes = ref([
@@ -228,13 +260,28 @@ const loading = ref(true)
 let rewards = [{layer: 0, total: 0}]
 
 const currentLayer = computed(() => {
-  const layersGapMinutes = (Date.now() - new Date(beaconLayerTime).getTime()) / 1000 / 60
+  const layersGapMinutes = (Date.now() - beaconLayerTime.getTime()) / 1000 / 60
   const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
   return beaconLayerId + layersDelta
 })
 
+const currentPS = computed(() => {
+
+  const merged:layerT[] = [...initLayers.value]
+
+  let firstLayer = Number.MAX_VALUE
+  let lastLayer = Number.MIN_VALUE
+  merged.forEach(m => {
+    if (firstLayer > m.layer) firstLayer = m.layer
+    if (lastLayer < m.layer) lastLayer = m.layer
+  })
+
+  return (currentLayer.value - firstLayer) / (lastLayer - firstLayer)
+
+})
+
 const getLayerByTime = (time:Date):number => {
-  const layersGapMinutes = (time.getTime() - new Date(beaconLayerTime).getTime()) / 1000 / 60
+  const layersGapMinutes = (time.getTime() - beaconLayerTime.getTime()) / 1000 / 60
   const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
   return beaconLayerId + layersDelta
 }
@@ -244,14 +291,34 @@ const nodeColor = (_node:string) => {
   return n ? n.color : null;
 }
 
-type layerT = {nodes?:string[], layer:number, smh?:number, info?:string[]}
+type layerT = {
+  nodes?:string[]
+  layer:number
+  smh?:number
+  info?:string[]
+  pos?:number
+}
+
+const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTime(e.time), info: e.info})))
 
 const eligLayersIdList = ():layerT[] => {
-  const merged:layerT[] = []
 
+  /*
+  const merged:layerT[] = []
   events.forEach(e => {
     merged.push({layer: getLayerByTime(e.time), info: e.info})
   })
+  */
+
+  const merged:layerT[] = [...initLayers.value]
+
+  let firstLayer = Number.MAX_VALUE
+  let lastLayer = Number.MIN_VALUE
+  merged.forEach(m => {
+    if (firstLayer > m.layer) firstLayer = m.layer
+    if (lastLayer < m.layer) lastLayer = m.layer
+  })
+  const layersRange = lastLayer - firstLayer
 
   nodes.value.forEach(n => {
     if (n.show) {
@@ -280,6 +347,10 @@ const eligLayersIdList = ():layerT[] => {
       grouped.push(m)
       last = m
     }
+  })
+
+  grouped.forEach(m => {
+    m.pos = (m.layer - firstLayer) / layersRange
   })
 
   if (Array.isArray(rewards)) {
