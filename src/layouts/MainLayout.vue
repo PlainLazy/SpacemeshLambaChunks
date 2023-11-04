@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hhh lpR lFf" style="min-width: 870px">
+  <q-layout view="hHh lpR fFf" style="min-width: 870px">
 
     <q-header class="bg-white" style="color: black; box-shadow: 0 -8px 34px rgba(200, 200, 200, 0.8);">
       <q-toolbar style="height: 64px;" class="q-pa-none">
@@ -108,17 +108,6 @@
         </template>
         <template v-else>
 
-          <svg width="100%" height="20" viewBox="0 0 1000 20" preserveAspectRatio="none" style="width: 100%">
-            <rect x="0" y="0" :width="currentPS * 1000" height="20" fill="rgb(165, 214, 167)" />
-            <rect :x="currentPS * 1000" y="0" :width="(1-currentPS) * 1000" height="20" fill="rgb(178, 223, 219)" />
-            <g v-for="l in eligLayersIdList()" :key="l.layer">
-              <rect
-                v-if="l.nodes && l.pos"
-                :x="l.pos * 999" y="0" width="1" height="20" :fill="nodeColor(l.nodes[0])"
-              />
-            </g>
-          </svg>
-
           <div class="row q-pa-sm justify-center" >
 
             <template v-for="id in eligLayersIdList()" :key="id.layer">
@@ -187,6 +176,19 @@
 
       </q-page>
     </q-page-container>
+
+    <q-footer style="height: 30px">
+      <svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="width: 100%">
+        <rect x="0" y="0" :width="currentPS * 1000" height="30" fill="rgb(165, 214, 167)" />
+        <rect :x="currentPS * 1000" y="0" :width="(1-currentPS) * 1000" height="30" fill="rgb(178, 223, 219)" />
+        <g v-for="l in eligLayersIdList()" :key="l.layer">
+          <rect
+            v-if="l.nodes && l.pos"
+            :x="l.pos * 999" y="0" width="1" height="30" :fill="nodeColor(l.nodes[0])"
+          />
+        </g>
+      </svg>
+    </q-footer>
 
   </q-layout>
 </template>
