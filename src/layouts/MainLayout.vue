@@ -178,13 +178,14 @@
     </q-page-container>
 
     <q-footer style="height: 30px">
-      <svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="width: 100%">
-        <rect x="0" y="0" :width="currentPS * 1000" height="30" fill="rgb(165, 214, 167)" />
-        <rect :x="currentPS * 1000" y="0" :width="(1-currentPS) * 1000" height="30" fill="rgb(178, 223, 219)" />
+      <svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="width: 100%; background-color: white">
+        <rect x="0" y="0" :width="edges.pos * 1000" height="10" fill="rgb(165, 214, 167)" />
+        <rect :x="edges.pos * 1000 - 1" y="0" :width="3" height="10" fill="black" />
+        <rect :x="edges.pos * 1000" y="0" :width="(1-edges.pos) * 1000" height="10" fill="rgb(178, 223, 219)" />
         <g v-for="l in eligLayersIdList()" :key="l.layer">
-          <rect
+          <line
             v-if="l.nodes && l.pos"
-            :x="l.pos * 999" y="0" width="1" height="30" :fill="nodeColor(l.nodes[0])"
+            :x1="l.pos * 1000" y1="12" :x2="l.pos * 1000" y2="30" :stroke="nodeColor(l.nodes[0])"
           />
         </g>
       </svg>
@@ -267,19 +268,24 @@ const currentLayer = computed(() => {
   return beaconLayerId + layersDelta
 })
 
-const currentPS = computed(() => {
+type edgesT = {
+  firstLayer:number
+  lastLayer:number
+  pos:number
+}
 
-  const merged:layerT[] = [...initLayers.value]
-
-  let firstLayer = Number.MAX_VALUE
-  let lastLayer = Number.MIN_VALUE
-  merged.forEach(m => {
-    if (firstLayer > m.layer) firstLayer = m.layer
-    if (lastLayer < m.layer) lastLayer = m.layer
+const edges = computed(() => {
+  const e:edgesT = {
+    firstLayer: Number.MAX_VALUE,
+    lastLayer: Number.MIN_VALUE,
+    pos: 0,
+  };
+  [...initLayers.value].forEach(m => {
+    if (e.firstLayer > m.layer) e.firstLayer = m.layer
+    if (e.lastLayer < m.layer) e.lastLayer = m.layer
   })
-
-  return (currentLayer.value - firstLayer) / (lastLayer - firstLayer)
-
+  e.pos = (currentLayer.value - e.firstLayer) / (e.lastLayer - e.firstLayer)
+  return e
 })
 
 const getLayerByTime = (time:Date):number => {
@@ -305,33 +311,18 @@ const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTi
 
 const eligLayersIdList = ():layerT[] => {
 
-  /*
-  const merged:layerT[] = []
-  events.forEach(e => {
-    merged.push({layer: getLayerByTime(e.time), info: e.info})
-  })
-  */
-
   const merged:layerT[] = [...initLayers.value]
-
-  let firstLayer = Number.MAX_VALUE
-  let lastLayer = Number.MIN_VALUE
-  merged.forEach(m => {
-    if (firstLayer > m.layer) firstLayer = m.layer
-    if (lastLayer < m.layer) lastLayer = m.layer
-  })
-  const layersRange = lastLayer - firstLayer
 
   nodes.value.forEach(n => {
     if (n.show) {
-      const logStyleLayers = [...n.layers.matchAll(/"layer": (\d+)/g)].map(e => Number(e[1]))
-      if (logStyleLayers.length > 0) {
-        logStyleLayers.forEach(l => {
+      const jsonNamedNumbers = [...n.layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
+      if (jsonNamedNumbers.length > 0) {
+        jsonNamedNumbers.forEach(l => {
           merged.push({nodes: [n.node], layer: l})
         })
       } else {
-        const uiStyleLayers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
-        uiStyleLayers.forEach(l => {
+        const bunchOfNumbers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
+        bunchOfNumbers.forEach(l => {
           merged.push({nodes: [n.node], layer: l})
         })
       }
@@ -352,7 +343,7 @@ const eligLayersIdList = ():layerT[] => {
   })
 
   grouped.forEach(m => {
-    m.pos = (m.layer - firstLayer) / layersRange
+    m.pos = (m.layer - edges.value.firstLayer) / (edges.value.lastLayer - edges.value.firstLayer)
   })
 
   if (Array.isArray(rewards)) {
@@ -386,14 +377,14 @@ const nodeAdjust = (_serial:number) => {
   const n = nodes.value.find(e => e.serial === _serial)
   if (n) {
     let layerNumbers:number[] = []
-    const logStyleLayers = [...n.layers.matchAll(/"layer": (\d+)/g)].map(e => Number(e[1]))
-    if (logStyleLayers.length > 0) {
-      logStyleLayers.forEach(l => {
+    const jsonNamedNumbers = [...n.layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
+    if (jsonNamedNumbers.length > 0) {
+      jsonNamedNumbers.forEach(l => {
         layerNumbers.push(l)
       })
     } else {
-      const uiStyleLayers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
-      uiStyleLayers.forEach(l => {
+      const bunchOfNumbers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
+      bunchOfNumbers.forEach(l => {
         layerNumbers.push(l)
       })
     }
@@ -460,7 +451,6 @@ const rewardsCheck = async () => {
   loading.value = true
 
   if ((coinbase.value || '').length > 0) {
-    //const wallets = coinbase.value.split(' ')
     const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
     for (const w of wallets) {
       const uri = `https://mainnet-explorer-api.spacemesh.network/accounts/${w}/rewards`
@@ -470,7 +460,6 @@ const rewardsCheck = async () => {
 
           const j0 = await index.json()
           pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / pageSize)
-          //console.log('pageCount', pageCount)
 
           let p = pageCount
           while (rewards.length <= 4032 && p > 0) {
@@ -487,7 +476,6 @@ const rewardsCheck = async () => {
           Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
         })
     }
-    //console.log('//', rewards)
   }
 
   const grouped:{layer:number, total:number}[] = []
