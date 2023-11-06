@@ -7,6 +7,8 @@
         <q-space/>
         SpaceMesh Lamba Chunks
         <q-space/>
+        <q-btn v-if="table" flat @click="table = false" icon="format_list_numbered_rtl" size="25px" />
+        <q-btn v-else flat @click="table = true" icon="snowing" size="25px" />
       </q-toolbar>
     </q-header>
 
@@ -26,10 +28,10 @@
           style="width: 795px"
         >
           <template v-slot:prepend>
-            <q-icon name="account_balance_wallet" class="material-icons-outlined" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
+            <q-icon name="account_balance_wallet" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
           </template>
           <template v-slot:append>
-            <q-icon name="send" class="cursor-pointer material-icons-outlined" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
+            <q-icon name="send" class="cursor-pointer" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
           </template>
         </q-input>
       </div>
@@ -47,7 +49,7 @@
             <q-icon
               :name="n.show ? 'visibility' : 'visibility_off'"
               :style="{color: n.show ? '#217ad2' : '#636363'}"
-              size="20px" class="cursor-pointer material-icons-outlined" @click="n.show = !n.show"
+              size="20px" class="cursor-pointer" @click="n.show = !n.show"
             />
           </template>
           <template v-slot:append>
@@ -80,7 +82,7 @@
                 </q-list>
               </q-menu>
             </q-icon>
-            <q-icon v-if="nodes.length > 1" name="delete" color="red-5" class="cursor-pointer material-icons-outlined">
+            <q-icon v-if="nodes.length > 1" name="delete" color="red-5" class="cursor-pointer">
               <q-menu self="top middle" anchor="bottom middle">
                 <q-list>
                   <q-item clickable v-close-popup class="bg-red text-white">
@@ -108,7 +110,75 @@
         </template>
         <template v-else>
 
-          <div class="row q-pa-sm justify-center" >
+          <q-markup-table flat dense v-if="table">
+            <!--
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Info</th>
+                <th>SMH</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            -->
+            <tbody>
+            <template v-for="id in eligLayersIdList()" :key="id.layer">
+              <template v-if="id.info">
+                <tr style="background: rgb(209, 196, 233)">
+                  <td>{{ id.layer }}</td>
+                  <td>{{ id.info.join('; ') }}</td>
+                  <td></td>
+                  <td>{{ id.time }}</td>
+                </tr>
+              </template>
+              <template v-else-if="id.layer === -1">
+                <tr style="background: rgb(100, 181, 246)">
+                  <td>{{ currentLayer }}</td>
+                  <td class="text-center">
+                    We are here
+                  </td>
+                  <td>
+                  </td>
+                  <td>{{ nowDate() + ' ' + nowTime() }}</td>
+                </tr>
+              </template>
+              <template v-else-if="id.layer === currentLayer">
+                <tr>
+                  <td>{{ currentLayer }}</td>
+                  <td>
+                    Just now
+                  </td>
+                  <td v-if="id.smh">
+                    +{{ id.smh }}
+                  </td><td v-else-if="coinbase !== ''">
+                    <q-icon name="report" color="red-8" size="20px"/>
+                  </td>
+                  <td>{{ id.time }}</td>
+                </tr>
+              </template>
+              <template v-else>
+                <tr :style="{background: id.layer < currentLayer ? '#a5d6a7' : '#b2dfdb'}">
+                  <td>{{ id.layer }}</td>
+                  <td class="text-center">
+                    <template v-for="(n, i) in id.nodes" :key="i">
+                      <span :style="{background: nodeColor(n), borderRadius: '12px', padding: '4px 10px 4px 10px'}">{{ n }}</span>
+                    </template>
+                  </td>
+                  <td v-if="id.smh" class="text-center">
+                    +{{ id.smh }}
+                  </td><td v-else-if="coinbase !== '' && id.layer < currentLayer" class="text-center">
+                    <q-icon name="report" color="red-8" size="20px"/>
+                  </td><td v-else>
+                  </td>
+                  <td>{{ id.time }}</td>
+                </tr>
+              </template>
+
+            </template>
+            </tbody>
+          </q-markup-table>
+
+          <div class="row q-pa-sm justify-center" v-else>
 
             <template v-for="id in eligLayersIdList()" :key="id.layer">
 
@@ -143,7 +213,7 @@
                 </div>
                 <div>{{ layersDiffInTime(id.layer, currentLayer) }} ago</div>
                 <div v-if="id.smh">+{{ id.smh }}</div>
-                <div v-else-if="coinbase !== ''"><q-icon name="report" class="material-icons-outlined" color="red-8" size="20px"/></div>
+                <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
                 <div><strong>{{ numberFormat(id.layer) }}</strong></div>
@@ -167,7 +237,7 @@
                 <svg viewBox="0 0 16 16" width="38" height="24">
                   <path fill="#9e9e9e" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z" />
                 </svg>
-                PlainLazy
+                <span style="font-size: 12px">PlainLazy</span>
               </div>
             </q-btn>
           </div>
@@ -185,7 +255,7 @@
         <g v-for="l in eligLayersIdList()" :key="l.layer">
           <line
             v-if="l.nodes && l.pos"
-            :x1="l.pos * 1000" y1="12" :x2="l.pos * 1000" y2="30" :stroke="nodeColor(l.nodes[0])"
+            :x1="l.pos * 1000" y1="12" :x2="l.pos * 1000" y2="30" stroke="grey"
           />
         </g>
       </svg>
@@ -203,13 +273,14 @@
 <script setup lang="ts">
 
 import {computed, onBeforeMount, ref, watch} from 'vue'
-import { copyToClipboard, Notify } from 'quasar'
+import { copyToClipboard, Notify, date } from 'quasar'
 
 const drawer = ref(false)
-const beaconLayerId = 20500
-const beaconLayerTime = new Date('2023-09-23T15:20:00+0300')
-const beaconEpochNumber = 6
-const beaconEpochBegin = new Date('2023-10-06 11:00:00+0300')
+const table = ref(false)
+const markLayerId = 20500
+const markLayerTime = new Date('2023-09-23T15:20:00+0300')
+const markEpochNumber = 6
+const markEpochBegin = new Date('2023-10-06 11:00:00+0300')
 const layerDurationMinutes = 5
 let serial = ref(0)
 
@@ -229,13 +300,12 @@ const events:eventT[] = [
   //{time: new Date('2023-11-17 11:00:00+0300'), info: ['PoST 7', '108h End']},
 ]
 
-const now = new Date()
 const eDurationMs = 14*24*60*60*1000  // 2 weeks
 const official12hOffsetMs = 228*60*60*1000  // -228h
 const official12hOffsetMs2 = (228+12)*60*60*1000  // +12h
-const ePassedNum = Math.floor((now.getTime() - beaconEpochBegin.getTime()) / eDurationMs)
-const eCurrentNum = beaconEpochNumber + ePassedNum
-const eCurrentBegin = beaconEpochBegin.getTime() + eDurationMs * (eCurrentNum - beaconEpochNumber)
+const ePassedNum = Math.floor((Date.now() - markEpochBegin.getTime()) / eDurationMs)
+const eCurrentNum = markEpochNumber + ePassedNum
+const eCurrentBegin = markEpochBegin.getTime() + eDurationMs * (eCurrentNum - markEpochNumber)
 events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum-1} End`, `Epoch ${eCurrentNum} Begin`]})
 events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin']})
 events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, '12h End']})
@@ -263,9 +333,9 @@ const loading = ref(true)
 let rewards = [{layer: 0, total: 0}]
 
 const currentLayer = computed(() => {
-  const layersGapMinutes = (Date.now() - beaconLayerTime.getTime()) / 1000 / 60
+  const layersGapMinutes = (Date.now() - markLayerTime.getTime()) / 1000 / 60
   const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
-  return beaconLayerId + layersDelta
+  return markLayerId + layersDelta
 })
 
 type edgesT = {
@@ -289,9 +359,13 @@ const edges = computed(() => {
 })
 
 const getLayerByTime = (time:Date):number => {
-  const layersGapMinutes = (time.getTime() - beaconLayerTime.getTime()) / 1000 / 60
+  const layersGapMinutes = (time.getTime() - markLayerTime.getTime()) / 1000 / 60
   const layersDelta = Math.floor(layersGapMinutes / layerDurationMinutes)
-  return beaconLayerId + layersDelta
+  return markLayerId + layersDelta
+}
+
+const getTimeByLayer = (targetLayerId:number):Date => {
+  return new Date(markLayerTime.getTime() + (targetLayerId - markLayerId) * layerDurationMinutes * 60 * 1000)
 }
 
 const nodeColor = (_node:string) => {
@@ -305,6 +379,7 @@ type layerT = {
   smh?:number
   info?:string[]
   pos?:number
+  time?:string
 }
 
 const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTime(e.time), info: e.info})))
@@ -354,6 +429,10 @@ const eligLayersIdList = ():layerT[] => {
       }
     })
   }
+
+  grouped.forEach(l => {
+    l.time = date.formatDate(getTimeByLayer(l.layer), 'YYYY-MM-DD HH:mm')
+  })
 
   const i = grouped.findIndex((e) => e.layer > currentLayer.value)
   return i !== -1 ? [...grouped.slice(0, i), {layer: -1, nodes: []}, ...grouped.slice(i)] : [...grouped, {layer: -1, nodes: []}]
@@ -415,19 +494,8 @@ const layersDiffInTime = (l0:number, l1:number) => {
   return a.join(' ')
 }
 
-const nowDate = () => {
-  const d = new Date(Date.now())
-  return [d.getDate(), d.getMonth() + 1, d.getFullYear()]
-    .map(e => e.toString().padStart(2, '0'))
-    .join('-')
-}
-
-const nowTime = () => {
-  const d = new Date(Date.now())
-  return [d.getHours(), d.getMinutes(), d.getSeconds()]
-    .map(e => e.toString().padStart(2, '0'))
-    .join(':')
-}
+const nowDate = () => date.formatDate(Date.now(), 'YYYY-MM-DD')
+const nowTime = () => date.formatDate(Date.now(), 'HH:mm')
 
 const numberFormat = (n:number):string => {
   let l0 = String(n).split('')
@@ -496,6 +564,7 @@ const rewardsCheck = async () => {
 
 watch(nodes, () => localStorage.setItem('nodes', JSON.stringify(nodes.value)), {deep: true})
 watch(coinbase, () => localStorage.setItem('coinbase', coinbase.value))
+watch(table, () => localStorage.setItem('table', String(table.value)))
 
 onBeforeMount(async () => {
 
@@ -514,6 +583,8 @@ onBeforeMount(async () => {
   }
 
   coinbase.value = localStorage.getItem('coinbase') || ''
+
+  table.value = Boolean(localStorage.getItem('table') === 'true')
 
   await rewardsCheck()
 
