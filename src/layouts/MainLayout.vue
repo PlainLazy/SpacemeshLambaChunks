@@ -19,13 +19,14 @@
       bordered
       class="q-ma-sm text-center"
     >
+    <q-scroll-area class="full-width full-height">
 
-      <div class="row items-center">
+      <div class="row items-center no-wrap">
         <q-input
           v-model="coinbase"
           label="coinbase sm1qqqqqqq... or several with any separator"
           filled dense stack-label
-          style="width: 795px"
+          class="full-width"
         >
           <template v-slot:prepend>
             <q-icon name="account_balance_wallet" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
@@ -34,6 +35,42 @@
             <q-icon name="send" class="cursor-pointer" color="blue-8" style="height: 40px" @click="rewardsCheck"/>
           </template>
         </q-input>
+        <q-btn flat dense rounded icon="more_vert" color="grey" class="q-ml-sm q-mr-md">
+          <q-menu :offset="[0, 0]" anchor="bottom middle" self="top middle">
+            <q-list>
+              <q-item clickable @click="SMMUpload">
+                <q-item-section>
+                  <div>
+                    <q-icon name="download" size="24px" color="blue" />
+                    load SM-Monitor config
+                  </div>
+                </q-item-section>
+                <q-uploader
+                  v-show="false"
+                  ref="uploaderRef"
+                  accept=".json"
+                  @added="SMMFileAdded"
+                />
+              </q-item>
+              <q-item clickable @click="SMMDownload">
+                <q-item-section class="row no-wrap">
+                  <div>
+                    <q-icon name="upload" size="24px" color="blue" />
+                    save SM-Monitor config
+                  </div>
+                </q-item-section>
+              </q-item>
+              <q-item clickable @click="SMMInfo">
+                <q-item-section class="row no-wrap">
+                  <div>
+                    <q-icon name="info" size="24px" color="blue" />
+                    SM-Monitor on github
+                  </div>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
+        </q-btn>
       </div>
 
       <div class="row items-center no-wrap" v-for="n in nodes" :key="n.serial">
@@ -100,6 +137,7 @@
 
       <q-btn label="ADD NODE" flat size="10px" style="height: 40px" @click="nodeCreate" />
 
+    </q-scroll-area>
     </q-drawer>
 
     <q-page-container class="bg-blue-2">
@@ -272,8 +310,8 @@
 
 <script setup lang="ts">
 
-import {computed, onBeforeMount, ref, watch} from 'vue'
-import { copyToClipboard, Notify, date } from 'quasar'
+import {computed, onBeforeMount, ref, watch, nextTick} from 'vue'
+import {copyToClipboard, Notify, date, QUploader} from 'quasar'
 
 const drawer = ref(false)
 const table = ref(false)
@@ -311,8 +349,16 @@ events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST $
 events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, '12h End']})
 events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum}`, '108h End']})
 
+type nodeT = {
+  serial: number
+  show: boolean
+  node: string
+  layers: string
+  color: string
+}
+
 const coinbase = ref('')
-const nodes = ref([
+const nodes = ref<nodeT[]>([
   {
     serial: serial.value++,
     show: true,
@@ -390,13 +436,14 @@ const eligLayersIdList = ():layerT[] => {
 
   nodes.value.forEach(n => {
     if (n.show) {
-      const jsonNamedNumbers = [...n.layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
+      const layers = n.layers || ''
+      const jsonNamedNumbers = [...layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
       if (jsonNamedNumbers.length > 0) {
         jsonNamedNumbers.forEach(l => {
           merged.push({nodes: [n.node], layer: l})
         })
       } else {
-        const bunchOfNumbers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
+        const bunchOfNumbers = (layers.match(/\d+/g) || []).map(a=>Number(a))
         bunchOfNumbers.forEach(l => {
           merged.push({nodes: [n.node], layer: l})
         })
@@ -456,13 +503,14 @@ const nodeAdjust = (_serial:number) => {
   const n = nodes.value.find(e => e.serial === _serial)
   if (n) {
     let layerNumbers:number[] = []
-    const jsonNamedNumbers = [...n.layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
+    const layers = n.layers || ''
+    const jsonNamedNumbers = [...layers.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
     if (jsonNamedNumbers.length > 0) {
       jsonNamedNumbers.forEach(l => {
         layerNumbers.push(l)
       })
     } else {
-      const bunchOfNumbers = (n.layers.match(/\d+/g) || []).map(a=>Number(a))
+      const bunchOfNumbers = (layers.match(/\d+/g) || []).map(a=>Number(a))
       bunchOfNumbers.forEach(l => {
         layerNumbers.push(l)
       })
@@ -560,6 +608,87 @@ const rewardsCheck = async () => {
 
   loading.value = false
 
+}
+
+const uploaderRef = ref<QUploader>()
+const SMMUpload = (e:Event) => {
+  uploaderRef.value?.reset()
+  nextTick(() =>
+    uploaderRef.value?.pickFiles(e)
+  )
+}
+
+const SMMFileAdded = async (files:readonly unknown[]) => {
+  if (files.length < 1) return
+  const content = await (files[0] as Blob).text()
+  console.log(content)
+
+  let j:any[] = []
+  try {
+    j = JSON.parse(content)
+    if (!Array.isArray(j)) {
+      throw Error('array expected')
+    }
+    // todo: check more
+  } catch (e) {
+    Notify.create({message: 'bad json', color: 'red', position: 'top'})
+    return
+  }
+
+  const nodesImported:nodeT[] = j.map(smm => ({
+    serial: serial.value++,
+    show: true,
+    node: smm.nodeName,
+    layers: smm.eligibilities,
+    color: '',
+  } as nodeT))
+
+  nodes.value = [...nodesImported]
+
+}
+
+const SMMDownload = () => {
+  const eligibilities = (n:nodeT):string => {
+    let list:number[] = []
+    const layers = n.layers || ''
+    const jsonNamedNumbers = [...layers?.matchAll(/"layer":[\s|\t]*(\d+)/g)].map(m => Number(m[1]))
+    if (jsonNamedNumbers.length > 0) {
+      jsonNamedNumbers.forEach(l => {
+        list.push(l)
+      })
+    } else {
+      const bunchOfNumbers = (layers?.match(/\d+/g) || []).map(a=>Number(a))
+      bunchOfNumbers.forEach(l => {
+        list.push(l)
+      })
+    }
+    return list.join(',')
+  }
+  const url = window.URL.createObjectURL(
+    new Blob([
+      new Uint8Array([0xEF, 0xBB, 0xBF]),
+      JSON.stringify(
+        nodes.value.map(n => ({
+          nodeName: n.node,
+          eligibilities: eligibilities(n),
+        })),
+        null,
+        '  '
+      )
+    ],
+    {type: 'text/json;charset=utf-8;'}
+  ))
+  const a = document.createElement('a')
+  a.style.display = 'none'
+  a.href = url
+  a.download = 'SM-Monitor ' + date.formatDate(Date.now(), 'YYYY-MM-DD HH:mm') + '.json'
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+}
+
+const SMMInfo = () => {
+  window.open('https://github.com/xeliuqa/SM-Monitor', '_blank')
 }
 
 watch(nodes, () => localStorage.setItem('nodes', JSON.stringify(nodes.value)), {deep: true})
