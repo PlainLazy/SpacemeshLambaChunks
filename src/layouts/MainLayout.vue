@@ -60,7 +60,7 @@
                   </div>
                 </q-item-section>
               </q-item>
-              <q-item clickable @click="SMMInfo">
+              <q-item clickable @click="windowOpen('https://github.com/xeliuqa/SM-Monitor')">
                 <q-item-section class="row no-wrap">
                   <div>
                     <q-icon name="info" size="24px" color="blue" />
@@ -148,49 +148,42 @@
         </template>
         <template v-else>
 
-          <q-markup-table flat dense v-if="table">
-            <!--
+          <q-markup-table flat dense v-if="table" class="q-mt-lg">
             <thead>
               <tr>
                 <th>Layer</th>
                 <th>Info</th>
                 <th>SMH</th>
-                <th>Time</th>
+                <th>DateTime</th>
               </tr>
             </thead>
-            -->
             <tbody>
             <template v-for="id in eligLayersIdList()" :key="id.layer">
               <template v-if="id.info">
                 <tr style="background: rgb(209, 196, 233)">
                   <td>{{ id.layer }}</td>
-                  <td>{{ id.info.join('; ') }}</td>
-                  <td></td>
+                  <td class="text-center">
+                    {{ id.info.join(' - ') }}
+                    <q-icon v-if="id.link" name="info" color="blue" size="18px" class="cursor-pointer" style="top: -1px" @click="windowOpen(id.link)" />
+                  </td>
+                  <td />
                   <td>{{ id.time }}</td>
                 </tr>
               </template>
               <template v-else-if="id.layer === -1">
                 <tr style="background: rgb(100, 181, 246)">
                   <td>{{ currentLayer }}</td>
-                  <td class="text-center">
-                    We are here
-                  </td>
-                  <td>
-                  </td>
+                  <td class="text-center">We are here</td>
+                  <td />
                   <td>{{ nowDate() + ' ' + nowTime() }}</td>
                 </tr>
               </template>
               <template v-else-if="id.layer === currentLayer">
-                <tr>
+                <tr style="background: rgb(100, 181, 246)">
                   <td>{{ currentLayer }}</td>
-                  <td>
-                    Just now
-                  </td>
-                  <td v-if="id.smh">
-                    +{{ id.smh }}
-                  </td><td v-else-if="coinbase !== ''">
-                    <q-icon name="report" color="red-8" size="20px"/>
-                  </td>
+                  <td class="text-center">JUST NOW</td>
+                  <td v-if="id.smh">{{ id.smh }}</td>
+                  <td v-else-if="coinbase !== ''"></td>
                   <td>{{ id.time }}</td>
                 </tr>
               </template>
@@ -203,11 +196,11 @@
                     </template>
                   </td>
                   <td v-if="id.smh" class="text-center">
-                    +{{ id.smh }}
+                    {{ id.smh }}
                   </td><td v-else-if="coinbase !== '' && id.layer < currentLayer" class="text-center">
                     <q-icon name="report" color="red-8" size="20px"/>
-                  </td><td v-else>
                   </td>
+                  <td v-else />
                   <td>{{ id.time }}</td>
                 </tr>
               </template>
@@ -221,44 +214,43 @@
             <template v-for="id in eligLayersIdList()" :key="id.layer">
 
               <div v-if="id.info" class="q-pa-sm q-ma-xs bg-deep-purple-2 flex column text-center justify-center" style="border-radius: 20px">
-                <div><strong>{{ numberFormat(id.layer) }}</strong></div>
-                <div v-for="(t, i) in id.info" :key="i">{{ t }}</div>
-                <div v-if="currentLayer < id.layer">in {{ layersDiffInTime(currentLayer, id.layer) }}</div>
-                <div v-else>{{ layersDiffInTime(currentLayer, id.layer) }} ago</div>
+                <div><strong>{{ id.layer }}</strong></div>
+                <div v-for="(t, i) in id.info" :key="i">
+                  {{ t }}
+                  <q-icon v-if="id.link && (i === id.info.length -1)" name="info" color="blue" size="18px" class="cursor-pointer" style="top: -1px" @click="windowOpen(id.link)" />
+                </div>
+                <div v-if="currentLayer < id.layer">+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
+                <div v-else>- {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
               <div v-else-if="id.layer === -1" class="q-pa-sm q-ma-xs bg-blue-4 flex column text-center justify-center" style="border-radius: 20px">
-                <div><strong>{{ numberFormat(currentLayer) }}</strong></div>
-                <div>
-                  We are here
-                </div>
+                <div><strong>{{ currentLayer }}</strong></div>
+                <div>We are here</div>
                 <div>{{ nowDate() }}</div>
                 <div>{{ nowTime() }}</div>
               </div>
               <div v-else-if="id.layer === currentLayer" class="q-pa-sm q-ma-xs bg-blue-4 rounded-borders flex column text-center justify-center">
-                <div><strong>{{ numberFormat(id.layer) }}</strong></div>
+                <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
                 </div>
-                <div>
-                  JUST NOW
-                </div>
-                <div v-if="id.smh">+{{ id.smh }}</div>
+                <div>JUST NOW</div>
+                <div v-if="id.smh">{{ id.smh }}</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="q-pa-sm q-ma-xs bg-green-3 rounded-borders flex column text-center justify-center">
-                <div><strong>{{ numberFormat(id.layer) }}</strong></div>
+                <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
                 </div>
-                <div>{{ layersDiffInTime(id.layer, currentLayer) }} ago</div>
-                <div v-if="id.smh">+{{ id.smh }}</div>
+                <div>- {{ layersDiffInTime(id.layer, currentLayer) }}</div>
+                <div v-if="id.smh">{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
-                <div><strong>{{ numberFormat(id.layer) }}</strong></div>
+                <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
                 </div>
-                <div>in {{ layersDiffInTime(currentLayer, id.layer) }}</div>
+                <div>+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
             </template>
 
@@ -322,32 +314,23 @@ const markEpochBegin = new Date('2023-10-06 11:00:00+0300')
 const layerDurationMinutes = 5
 let serial = ref(0)
 
-type eventT = {time:Date, info:string[]}
-const events:eventT[] = [
-  //{time: new Date('2023-10-06 11:00:00+0300'), info: ['Epoch 5 End', 'Epoch 6 Begin']},
-  //{time: new Date('2023-10-15 23:00:00+0300'), info: ['PoST 5', 'Begin']},
-  //{time: new Date('2023-10-16 11:00:00+0300'), info: ['PoST 5', '12h End']},
-  //{time: new Date('2023-10-20 11:00:00+0300'), info: ['PoST 5', '108h End']},
-  //{time: new Date('2023-10-20 11:00:00+0300'), info: ['Epoch 6 End', 'Epoch 7 Begin']},
-  //{time: new Date('2023-10-29 23:00:00+0300'), info: ['PoST 6', 'Begin']},
-  //{time: new Date('2023-10-30 10:00:00+0300'), info: ['PoST 6', '12h End']},
-  //{time: new Date('2023-11-03 11:00:00+0300'), info: ['PoST 6', '108h End']},
-  //{time: new Date('2023-11-03 11:00:00+0300'), info: ['Epoch 7 End', 'Epoch 8 Begin']},
-  //{time: new Date('2023-11-12 23:00:00+0300'), info: ['PoST 7', 'Begin']},
-  //{time: new Date('2023-11-13 10:00:00+0300'), info: ['PoST 7', '12h End']},
-  //{time: new Date('2023-11-17 11:00:00+0300'), info: ['PoST 7', '108h End']},
-]
+type eventT = {time:Date, info:string[], link?:string}
+const events:eventT[] = []
 
 const eDurationMs = 14*24*60*60*1000  // 2 weeks
 const official12hOffsetMs = 228*60*60*1000  // -228h
 const official12hOffsetMs2 = (228+12)*60*60*1000  // +12h
+const team24hOffsetMs = 264*60*60*1000  // -264h
+const team24hOffsetMs2 = (264+24)*60*60*1000  // +24h
 const ePassedNum = Math.floor((Date.now() - markEpochBegin.getTime()) / eDurationMs)
 const eCurrentNum = markEpochNumber + ePassedNum
 const eCurrentBegin = markEpochBegin.getTime() + eDurationMs * (eCurrentNum - markEpochNumber)
-events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum-1} End`, `Epoch ${eCurrentNum} Begin`]})
-events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin']})
-events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, '12h End']})
-events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum}`, '108h End']})
+events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum}`]})
+events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin 12h']})
+events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End 12h']})
+events.push({time: new Date(eCurrentBegin + team24hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin T24'], link: 'https://discord.com/channels/1166079355064164383/1166388271895560233'})
+events.push({time: new Date(eCurrentBegin + team24hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End T24']})
+events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum-1}`, 'End 108h']})
 
 type nodeT = {
   serial: number
@@ -416,7 +399,7 @@ const getTimeByLayer = (targetLayerId:number):Date => {
 
 const nodeColor = (_node:string) => {
   const n = nodes.value.find(n => n.node === _node)
-  return n ? n.color : null;
+  return n ? n.color : null
 }
 
 type layerT = {
@@ -424,11 +407,12 @@ type layerT = {
   layer:number
   smh?:number
   info?:string[]
+  link?:string
   pos?:number
   time?:string
 }
 
-const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTime(e.time), info: e.info})))
+const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTime(e.time), info: e.info, link: e.link})))
 
 const eligLayersIdList = ():layerT[] => {
 
@@ -544,18 +528,6 @@ const layersDiffInTime = (l0:number, l1:number) => {
 
 const nowDate = () => date.formatDate(Date.now(), 'YYYY-MM-DD')
 const nowTime = () => date.formatDate(Date.now(), 'HH:mm')
-
-const numberFormat = (n:number):string => {
-  let l0 = String(n).split('')
-  let s1 = ''
-  l0.forEach((v, i) => {
-    s1 += v
-    if ((l0.length - i) % 3 === 1 && i < l0.length - 1) {
-      s1 += ' '
-    }
-  })
-  return s1
-}
 
 const pageSize = 500
 
@@ -687,8 +659,8 @@ const SMMDownload = () => {
   window.URL.revokeObjectURL(url)
 }
 
-const SMMInfo = () => {
-  window.open('https://github.com/xeliuqa/SM-Monitor', '_blank')
+const windowOpen = (uri:string) => {
+  window.open(uri, '_blank')
 }
 
 watch(nodes, () => localStorage.setItem('nodes', JSON.stringify(nodes.value)), {deep: true})
