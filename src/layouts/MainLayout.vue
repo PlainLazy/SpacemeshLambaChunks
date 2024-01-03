@@ -328,7 +328,7 @@ const eCurrentBegin = markEpochBegin.getTime() + eDurationMs * (eCurrentNum - ma
 events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum}`]})
 events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin 12h']})
 events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End 12h']})
-events.push({time: new Date(eCurrentBegin + team24hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin T24'], link: 'https://discord.com/channels/1166079355064164383/1166388271895560233'})
+events.push({time: new Date(eCurrentBegin + team24hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin T24'], link: 'https://discord.gg/HzyA2Z7EKW'})
 events.push({time: new Date(eCurrentBegin + team24hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End T24']})
 events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum-1}`, 'End 108h']})
 
