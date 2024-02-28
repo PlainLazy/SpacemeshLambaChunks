@@ -541,7 +541,7 @@ const rewardsCheck = async () => {
   if ((coinbase.value || '').length > 0) {
     const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
     for (const w of wallets) {
-      const uri = `https://mainnet-explorer-api.spacemesh.network/accounts/${w}/rewards`
+      const uri = `https://mainnet-explorer-3-api.spacemesh.network/accounts/${w}/rewards`
       let pageCount = 0
       await fetch(uri)
         .then(async index => {
