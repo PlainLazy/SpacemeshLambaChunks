@@ -529,7 +529,8 @@ const layersDiffInTime = (l0:number, l1:number) => {
 const nowDate = () => date.formatDate(Date.now(), 'YYYY-MM-DD')
 const nowTime = () => date.formatDate(Date.now(), 'HH:mm')
 
-const pageSize = 500
+const rewardsPerPage  = 2000
+const rewardsLimit    = 20000  // there can be more than one reward per layer, so more than 4032 per epoch, lets limit 20k
 
 const rewardsCheck = async () => {
 
@@ -547,11 +548,11 @@ const rewardsCheck = async () => {
         .then(async index => {
 
           const j0 = await index.json()
-          pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / pageSize)
+          pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
 
           let p = pageCount
-          while (rewards.length <= 4032 && p > 0) {
-            await fetch(`${uri}?page=${p}&pagesize=${pageSize}`)
+          while (rewards.length <= rewardsLimit && p > 0) {
+            await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
               .then(async chunk => {
                 const j1 = await chunk.json()
                 rewards = [ ... rewards, ... j1['data'] ]
