@@ -542,6 +542,9 @@ const rewardsCheck = async () => {
   if ((coinbase.value || '').length > 0) {
     const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
     for (const w of wallets) {
+
+      // before 72576
+      /*
       const uri = `https://mainnet-explorer-3-api.spacemesh.network/accounts/${w}/rewards`
       let pageCount = 0
       await fetch(uri)
@@ -564,6 +567,30 @@ const rewardsCheck = async () => {
         .catch(() => {
           Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
         })
+      */
+
+      // after 72576
+      // pagination reversed
+      const uri = `https://mainnet-explorer-api.spacemesh.network/accounts/${w}/rewards`
+      let pageCount = 0
+      await fetch(uri)
+        .then(async index => {
+          const j0 = await index.json()
+          pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
+          let p = 1
+          while (rewards.length <= rewardsLimit && p <= pageCount) {
+            await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
+              .then(async chunk => {
+                const j1 = await chunk.json()
+                rewards = [ ... rewards, ... j1['data'] ]
+              })
+            p++
+          }
+        })
+        .catch(() => {
+          Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
+        })
+
     }
   }
 
