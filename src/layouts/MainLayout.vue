@@ -199,9 +199,13 @@
               <template v-else-if="id.layer === currentLayer">
                 <tr class="my-here">
                   <td>{{ currentLayer }}</td>
-                  <td class="text-center">JUST NOW</td>
+                  <td class="text-center">
+                    <span class="text-center q-mr-sm">Just now</span>
+                    <span v-for="(n, i) in id.nodes" :key="i" :style="nodeNameStyle(n)">{{ n }}</span>
+                  </td>
                   <td v-if="id.smh">{{ id.smh }}</td>
                   <td v-else-if="coinbase !== ''"></td>
+                  <td v-else />
                   <td>{{ id.time }}</td>
                 </tr>
               </template>
@@ -209,10 +213,7 @@
                 <tr :class="[id.layer < currentLayer ? 'my-before' : 'my-after']">
                   <td>{{ id.layer }}</td>
                   <td class="text-center">
-                    <template v-for="(n, i) in id.nodes" :key="i">
-                      <span v-if="!$q.dark.isActive" :style="{backgroundColor: nodeColor(n), borderRadius: '12px', padding: '4px 10px 4px 10px'}">{{ n }}</span>
-                      <span v-else :style="{borderColor: nodeColor(n), borderWidth: '3px', borderRadius: '10px', borderStyle: 'solid', padding: '1px 7px 1px 7px'}">{{ n }}</span>
-                    </template>
+                    <span v-for="(n, i) in id.nodes" :key="i" :style="nodeNameStyle(n)">{{ n }}</span>
                   </td>
                   <td v-if="id.smh" class="text-center">
                     {{ id.smh }}
@@ -249,26 +250,20 @@
               </div>
               <div v-else-if="id.layer === currentLayer" class="my-here q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
-                  {{ v }}
-                </div>
-                <div>JUST NOW</div>
+                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
+                <div>Just now</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="my-before q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
-                  {{ v }}
-                </div>
+                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
                 <div>- {{ layersDiffInTime(id.layer, currentLayer) }}</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="my-after q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
-                  {{ v }}
-                </div>
+                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
                 <div>+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
             </template>
@@ -297,10 +292,10 @@
     </q-page-container>
 
     <q-footer style="height: 30px">
-      <svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="width: 100%; background-color: white">
-        <rect x="0" y="0" :width="edges.pos * 1000" height="10" fill="rgb(165, 214, 167)" />
+      <svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="width: 100%" class="my-footer">
+        <rect x="0" y="0" :width="edges.pos * 1000" height="10" class="my-before" />
         <rect :x="edges.pos * 1000 - 1" y="0" :width="3" height="10" fill="black" />
-        <rect :x="edges.pos * 1000" y="0" :width="(1-edges.pos) * 1000" height="10" fill="rgb(178, 223, 219)" />
+        <rect :x="edges.pos * 1000" y="0" :width="(1-edges.pos) * 1000" height="10" class="my-after" />
         <g v-for="l in eligLayersIdList()" :key="l.layer">
           <line
             v-if="l.nodes && l.pos"
@@ -331,9 +326,14 @@
   }
   .my-before {
     background-color: $green-2;
+    fill: $green-2;
   }
   .my-after {
     background-color: $teal-2;
+    fill: $teal-2;
+  }
+  .my-footer {
+    background-color: white;
   }
 }
 .body--dark {
@@ -354,9 +354,14 @@
   }
   .my-before {
     background-color: $green-9;
+    fill: $green-9;
   }
   .my-after {
     background-color: $teal-9;
+    fill: $teal-9;
+  }
+  .my-footer {
+    background-color: $dark;
   }
 }
 </style>
@@ -811,5 +816,15 @@ onBeforeMount(async () => {
 })
 
 const potato = 'sm1qqqqqqq04h9wlpqgfj878kfumrfsk0h92u0sxjcmjjpux'
+
+const nodeNameStyle = (n:string) => {
+  const c = nodeColor(n)
+  return Dark.isActive ?
+    (c ?
+      {borderColor: c, borderWidth: '3px', borderRadius: '10px', borderStyle: 'solid', padding: '1px 7px 1px 7px'} :
+      {borderRadius: '10px', padding: '4px 10px 4px 10px'}
+    ) :
+    {backgroundColor: c, borderRadius: '12px', padding: '4px 10px 4px 10px'}
+}
 
 </script>
