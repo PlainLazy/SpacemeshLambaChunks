@@ -1,19 +1,37 @@
 <template>
   <q-layout view="hHh lpR fFf" style="min-width: 870px">
 
-    <q-header class="bg-white" style="color: black; box-shadow: 0 -8px 34px rgba(200, 200, 200, 0.8);">
+    <q-header style="box-shadow: 0 -8px 34px rgba(200, 200, 200, 0.8);">
       <q-toolbar style="height: 64px;" class="q-pa-none">
-        <q-btn flat @click="drawer = true" icon="menu" size="25px" />
+        <q-btn flat @click="drawerLayers = true" icon="menu" size="25px" />
+        <q-btn flat @click="drawerOptions = true" icon="settings" size="25px" />
         <q-space/>
         SpaceMesh Lamba Chunks
         <q-space/>
+        <q-btn flat @click="Dark.toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="25px" />
         <q-btn v-if="table" flat @click="table = false" icon="format_list_numbered_rtl" size="25px" />
         <q-btn v-else flat @click="table = true" icon="snowing" size="25px" />
       </q-toolbar>
     </q-header>
 
     <q-drawer
-      v-model="drawer"
+      v-model="drawerOptions"
+      :width="300"
+      behavior="mobile"
+      bordered
+      class="q-ma-sm text-center"
+    >
+      <q-scroll-area class="full-width full-height">
+        <div class="column">
+          <q-checkbox v-model="optE24" label="Team24Early" />
+          <q-checkbox v-model="opt12H" label="Default12H" />
+          <q-checkbox v-model="optT24" label="Team24Late" />
+        </div>
+      </q-scroll-area>
+    </q-drawer>
+
+    <q-drawer
+      v-model="drawerLayers"
       :width="810"
       behavior="mobile"
       bordered
@@ -140,7 +158,7 @@
     </q-scroll-area>
     </q-drawer>
 
-    <q-page-container class="bg-blue-2">
+    <q-page-container class="-bg-blue-2">
       <q-page class="items-center justify-center column">
 
         <template v-if="loading">
@@ -160,7 +178,7 @@
             <tbody>
             <template v-for="id in eligLayersIdList()" :key="id.layer">
               <template v-if="id.info">
-                <tr style="background: rgb(209, 196, 233)">
+                <tr class="my-info">
                   <td>{{ id.layer }}</td>
                   <td class="text-center">
                     {{ id.info.join(' - ') }}
@@ -171,7 +189,7 @@
                 </tr>
               </template>
               <template v-else-if="id.layer === -1">
-                <tr style="background: rgb(100, 181, 246)">
+                <tr class="my-here">
                   <td>{{ currentLayer }}</td>
                   <td class="text-center">We are here</td>
                   <td />
@@ -179,7 +197,7 @@
                 </tr>
               </template>
               <template v-else-if="id.layer === currentLayer">
-                <tr style="background: rgb(100, 181, 246)">
+                <tr class="my-here">
                   <td>{{ currentLayer }}</td>
                   <td class="text-center">JUST NOW</td>
                   <td v-if="id.smh">{{ id.smh }}</td>
@@ -188,11 +206,12 @@
                 </tr>
               </template>
               <template v-else>
-                <tr :style="{background: id.layer < currentLayer ? '#a5d6a7' : '#b2dfdb'}">
+                <tr :class="[id.layer < currentLayer ? 'my-before' : 'my-after']">
                   <td>{{ id.layer }}</td>
                   <td class="text-center">
                     <template v-for="(n, i) in id.nodes" :key="i">
-                      <span :style="{background: nodeColor(n), borderRadius: '12px', padding: '4px 10px 4px 10px'}">{{ n }}</span>
+                      <span v-if="!$q.dark.isActive" :style="{backgroundColor: nodeColor(n), borderRadius: '12px', padding: '4px 10px 4px 10px'}">{{ n }}</span>
+                      <span v-else :style="{borderColor: nodeColor(n), borderWidth: '3px', borderRadius: '10px', borderStyle: 'solid', padding: '1px 7px 1px 7px'}">{{ n }}</span>
                     </template>
                   </td>
                   <td v-if="id.smh" class="text-center">
@@ -213,7 +232,7 @@
 
             <template v-for="id in eligLayersIdList()" :key="id.layer">
 
-              <div v-if="id.info" class="q-pa-sm q-ma-xs bg-deep-purple-2 flex column text-center justify-center" style="border-radius: 20px">
+              <div v-if="id.info" class="my-info q-pa-sm q-ma-xs flex column text-center justify-center" style="border-radius: 20px">
                 <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(t, i) in id.info" :key="i">
                   {{ t }}
@@ -222,13 +241,13 @@
                 <div v-if="currentLayer < id.layer">+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
                 <div v-else>- {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
-              <div v-else-if="id.layer === -1" class="q-pa-sm q-ma-xs bg-blue-4 flex column text-center justify-center" style="border-radius: 20px">
+              <div v-else-if="id.layer === -1" class="my-here q-pa-sm q-ma-xs flex column text-center justify-center" style="border-radius: 20px">
                 <div><strong>{{ currentLayer }}</strong></div>
                 <div>We are here</div>
                 <div>{{ nowDate() }}</div>
                 <div>{{ nowTime() }}</div>
               </div>
-              <div v-else-if="id.layer === currentLayer" class="q-pa-sm q-ma-xs bg-blue-4 rounded-borders flex column text-center justify-center">
+              <div v-else-if="id.layer === currentLayer" class="my-here q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
@@ -236,7 +255,7 @@
                 <div>JUST NOW</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
               </div>
-              <div v-else-if="id.layer < currentLayer" class="q-pa-sm q-ma-xs bg-green-3 rounded-borders flex column text-center justify-center">
+              <div v-else-if="id.layer < currentLayer" class="my-before q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
@@ -245,7 +264,7 @@
                 <div v-if="id.smh">{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
-              <div v-else class="q-pa-sm q-ma-xs bg-teal-2 rounded-borders flex column text-center justify-center">
+              <div v-else class="my-after q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(v, k) in id.nodes" :key="k" :style="{backgroundColor: nodeColor(v), borderRadius: '8px'}" class="q-px-sm">
                   {{ v }}
@@ -294,18 +313,61 @@
   </q-layout>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@use 'quasar/src/css/variables';
 .q-btn {
   text-transform: none;
+}
+.body--light {
+  header {
+    color: black;
+    background-color: white;
+  }
+  .my-info {
+    background-color: $deep-purple-2;
+  }
+  .my-here {
+    background-color: $blue-4;
+  }
+  .my-before {
+    background-color: $green-2;
+  }
+  .my-after {
+    background-color: $teal-2;
+  }
+}
+.body--dark {
+
+  header {
+    color: $grey-4;
+    background-color: $dark;
+  }
+  main {
+    color: $grey-4;
+    background-color: $dark;
+  }
+  .my-info {
+    background-color: $deep-purple-8;
+  }
+  .my-here {
+    background-color: $blue-10;
+  }
+  .my-before {
+    background-color: $green-9;
+  }
+  .my-after {
+    background-color: $teal-9;
+  }
 }
 </style>
 
 <script setup lang="ts">
 
 import {computed, onBeforeMount, ref, watch, nextTick} from 'vue'
-import {copyToClipboard, Notify, date, QUploader} from 'quasar'
+import {copyToClipboard, Notify, date, QUploader, Dark} from 'quasar'
 
-const drawer = ref(false)
+const drawerLayers = ref(false)
+const drawerOptions = ref(false)
 const table = ref(false)
 const markLayerId = 20500
 const markLayerTime = new Date('2023-09-23T15:20:00+0300')
@@ -313,24 +375,33 @@ const markEpochNumber = 6
 const markEpochBegin = new Date('2023-10-06 11:00:00+0300')
 const layerDurationMinutes = 5
 let serial = ref(0)
+const options = ref(['12H'])
 
-type eventT = {time:Date, info:string[], link?:string}
+type eventT = {time:Date, info:string[], link?:string, type?:string}
 const events:eventT[] = []
 
 const eDurationMs = 14*24*60*60*1000  // 2 weeks
-const official12hOffsetMs = 228*60*60*1000  // -228h
-const official12hOffsetMs2 = (228+12)*60*60*1000  // +12h
-const team24hOffsetMs = 264*60*60*1000  // -264h
-const team24hOffsetMs2 = (264+24)*60*60*1000  // +24h
+const T24EarlyOffsetMs = 96*60*60*1000
+const T24EarlyDurationMs = (96+24)*60*60*1000  // +24h
+const default12hOffsetMs = 228*60*60*1000  // -228h
+const default12hDurationMs2 = (228+12)*60*60*1000  // +12h
+const T24LateOffsetMs = 264*60*60*1000  // -264h
+const T24LateDurationMs = (264+24)*60*60*1000  // +24h
 const ePassedNum = Math.floor((Date.now() - markEpochBegin.getTime()) / eDurationMs)
 const eCurrentNum = markEpochNumber + ePassedNum
 const eCurrentBegin = markEpochBegin.getTime() + eDurationMs * (eCurrentNum - markEpochNumber)
 events.push({time: new Date(eCurrentBegin), info: [`Epoch ${eCurrentNum}`]})
-events.push({time: new Date(eCurrentBegin + official12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin 12h']})
-events.push({time: new Date(eCurrentBegin + official12hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End 12h']})
-events.push({time: new Date(eCurrentBegin + team24hOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'Begin T24'], link: 'https://discord.gg/HzyA2Z7EKW'})
-events.push({time: new Date(eCurrentBegin + team24hOffsetMs2), info: [`PoST ${eCurrentNum-1}`, 'End T24']})
-events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum-1}`, 'End 108h']})
+events.push({time: new Date(eCurrentBegin + T24EarlyOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'T24E begin'], type: 'E24', link: 'https://discord.gg/HzyA2Z7EKW'})
+events.push({time: new Date(eCurrentBegin + T24EarlyDurationMs), info: [`PoST ${eCurrentNum-1}`, 'T24E end'], type: 'E24'})
+events.push({time: new Date(eCurrentBegin + default12hOffsetMs), info: [`PoST ${eCurrentNum-1}`, '12h begin'], type: '12H'})
+events.push({time: new Date(eCurrentBegin + default12hDurationMs2), info: [`PoST ${eCurrentNum-1}`, '12h end'], type: '12H'})
+events.push({time: new Date(eCurrentBegin + T24LateOffsetMs), info: [`PoST ${eCurrentNum-1}`, 'T24L begin'], type: 'T24', link: 'https://discord.gg/HzyA2Z7EKW'})
+events.push({time: new Date(eCurrentBegin + T24LateDurationMs), info: [`PoST ${eCurrentNum-1}`, 'T24L end'], type: 'T24'})
+events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`PoST ${eCurrentNum-1}`, '108h end'], type: '12H'})
+
+const optE24 = ref(false)
+const opt12H = ref(false)
+const optT24 = ref(false)
 
 type nodeT = {
   serial: number
@@ -412,7 +483,10 @@ type layerT = {
   time?:string
 }
 
-const initLayers = computed(():layerT[] => events.map(e => ({layer: getLayerByTime(e.time), info: e.info, link: e.link})))
+const initLayers = computed(():layerT[] => events
+  .filter(e => e.type == null || options.value.indexOf(e.type) !== -1)
+  .map(e => ({layer: getLayerByTime(e.time), info: e.info, link: e.link}))
+)
 
 const eligLayersIdList = ():layerT[] => {
 
@@ -534,7 +608,7 @@ const rewardsLimit    = 20000  // there can be more than one reward per layer, s
 
 const rewardsCheck = async () => {
 
-  drawer.value = false
+  drawerLayers.value = false
 
   rewards = []
   loading.value = true
@@ -694,6 +768,11 @@ const windowOpen = (uri:string) => {
 watch(nodes, () => localStorage.setItem('nodes', JSON.stringify(nodes.value)), {deep: true})
 watch(coinbase, () => localStorage.setItem('coinbase', coinbase.value))
 watch(table, () => localStorage.setItem('table', String(table.value)))
+watch([optE24, opt12H, optT24], () => {
+  options.value = [optE24.value ? 'E24' : '', opt12H.value ? '12H' : '', optT24.value ? 'T24' : ''].filter(v => v)
+  localStorage.setItem('options', String(options.value))
+})
+watch(() => Dark.isActive, isDark => { localStorage.setItem('dark', String(isDark)) })
 
 onBeforeMount(async () => {
 
@@ -714,6 +793,18 @@ onBeforeMount(async () => {
   coinbase.value = localStorage.getItem('coinbase') || ''
 
   table.value = Boolean(localStorage.getItem('table') === 'true')
+
+  const isDark:string|null = localStorage.getItem('dark')
+  Dark.set(isDark != null ? Boolean(isDark === 'true') : 'auto')
+
+  let opts:string|null = localStorage.getItem('options')
+  if (opts == null) opts = '12H'
+  options.value = opts.split(',')
+  options.value.forEach((v:string) => {
+    if (v === 'E24') optE24.value = true
+    if (v === '12H') opt12H.value = true
+    if (v === 'T24') optT24.value = true
+  })
 
   await rewardsCheck()
 
