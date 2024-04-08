@@ -6,7 +6,7 @@
         <q-btn flat @click="drawerLayers = true" icon="menu" size="25px" />
         <q-btn flat @click="drawerOptions = true" icon="settings" size="25px" />
         <q-space/>
-        SpaceMesh Lamba Chunks
+        <span class="text-subtitle1">SpaceMesh Lamba Chunks</span>
         <q-space/>
         <q-btn flat @click="Dark.toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="25px" />
         <q-btn v-if="table" flat @click="table = false" icon="format_list_numbered_rtl" size="25px" />
@@ -32,7 +32,7 @@
 
     <q-drawer
       v-model="drawerLayers"
-      :width="810"
+      :width="710"
       behavior="mobile"
       bordered
       class="q-ma-sm text-center"
@@ -123,7 +123,7 @@
           label="Eligible for rewards in layers | proposal eligibility for an epoch"
           type="text"
           class="q-ma-xs"
-          style="width: 600px"
+          style="width: 500px"
         >
           <template v-slot:append>
             <q-icon name="adjust" class="cursor-pointer" v-if="!isLayersOkay(n.layers)">
@@ -158,7 +158,7 @@
     </q-scroll-area>
     </q-drawer>
 
-    <q-page-container class="-bg-blue-2">
+    <q-page-container>
       <q-page class="items-center justify-center column">
 
         <template v-if="loading">
@@ -250,20 +250,20 @@
               </div>
               <div v-else-if="id.layer === currentLayer" class="my-here q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
+                <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>Just now</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
               </div>
               <div v-else-if="id.layer < currentLayer" class="my-before q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
+                <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>- {{ layersDiffInTime(id.layer, currentLayer) }}</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
               <div v-else class="my-after q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
-                <div v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</div>
+                <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
             </template>
@@ -310,6 +310,9 @@
 
 <style lang="scss">
 @use 'quasar/src/css/variables';
+body {
+  font-size: 13px;
+}
 .q-btn {
   text-transform: none;
 }
@@ -337,31 +340,36 @@
   }
 }
 .body--dark {
-
   header {
     color: $grey-4;
-    background-color: $dark;
+    background-color: $blue-grey-10;
   }
   main {
     color: $grey-4;
-    background-color: $dark;
+    background-color: $blue-grey-10;
   }
   .my-info {
-    background-color: $deep-purple-8;
+    background-color: $light-blue-10;
   }
   .my-here {
-    background-color: $blue-10;
+    background-color: $deep-orange-10;
+    box-shadow: inset 0 0 4px 4px rgba(38,50,56,0.5);
   }
   .my-before {
-    background-color: $green-9;
-    fill: $green-9;
+    background-color: $light-green-10;
+    box-shadow: inset 0 0 16px 8px rgba(0,128,0,0.75);
+    fill: $light-green-9;
   }
   .my-after {
-    background-color: $teal-9;
-    fill: $teal-9;
+    background-color: $light-green-10;
+    box-shadow: inset 0 0 16px 8px rgba(38,50,56,0.5);
+    fill: $light-green-10;
   }
   .my-footer {
-    background-color: $dark;
+    background-color: $blue-grey-10;
+  }
+  .q-drawer {
+    background-color: $blue-grey-10;
   }
 }
 </style>
@@ -821,10 +829,10 @@ const nodeNameStyle = (n:string) => {
   const c = nodeColor(n)
   return Dark.isActive ?
     (c ?
-      {borderColor: c, borderWidth: '3px', borderRadius: '10px', borderStyle: 'solid', padding: '1px 7px 1px 7px'} :
-      {borderRadius: '10px', padding: '4px 10px 4px 10px'}
+      {borderColor: c, borderWidth: '3px', borderRadius: '12px', borderStyle: 'solid', padding: '1px 7px 1px 7px', lineHeight: '14px'} :
+      {borderRadius: '12px', padding: '4px 10px 4px 10px'}
     ) :
-    {backgroundColor: c, borderRadius: '12px', padding: '4px 10px 4px 10px'}
+    {backgroundColor: c, borderRadius: '12px', padding: '4px 10px 4px 10px', lineHeight: '14px'}
 }
 
 </script>
