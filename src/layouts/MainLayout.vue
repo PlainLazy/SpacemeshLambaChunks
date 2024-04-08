@@ -824,12 +824,13 @@ const potato = 'sm1qqqqqqq04h9wlpqgfj878kfumrfsk0h92u0sxjcmjjpux'
 
 const nodeNameStyle = (n:string) => {
   const c = nodeColor(n)
+
   return Dark.isActive ?
     (c ?
       {borderColor: c, borderWidth: '2px', borderRadius: '12px', borderStyle: 'solid', padding: '1px 7px 1px 7px', lineHeight: '15px'} :
       {borderRadius: '12px', padding: '4px 10px 4px 10px'}
     ) :
-    {backgroundColor: c, borderRadius: '12px', padding: '2px 9px 2px 9px', lineHeight: '15px'}
+    {backgroundColor: c, borderRadius: '12px', padding: '3px 9px 3px 9px', lineHeight: '15px'}
 }
 
 </script>
