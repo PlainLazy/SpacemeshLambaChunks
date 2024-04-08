@@ -233,7 +233,7 @@
 
             <template v-for="id in eligLayersIdList()" :key="id.layer">
 
-              <div v-if="id.info" class="my-info q-pa-sm q-ma-xs flex column text-center justify-center" style="border-radius: 20px">
+              <div v-if="id.info" class="my-info q-pa-sm q-ma-xs flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <div v-for="(t, i) in id.info" :key="i">
                   {{ t }}
@@ -242,26 +242,26 @@
                 <div v-if="currentLayer < id.layer">+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
                 <div v-else>- {{ layersDiffInTime(currentLayer, id.layer) }}</div>
               </div>
-              <div v-else-if="id.layer === -1" class="my-here q-pa-sm q-ma-xs flex column text-center justify-center" style="border-radius: 20px">
+              <div v-else-if="id.layer === -1" class="my-here q-pa-sm q-ma-xs flex column text-center justify-center">
                 <div><strong>{{ currentLayer }}</strong></div>
                 <div>We are here</div>
                 <div>{{ nowDate() }}</div>
                 <div>{{ nowTime() }}</div>
               </div>
-              <div v-else-if="id.layer === currentLayer" class="my-here q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
+              <div v-else-if="id.layer === currentLayer" class="my-here q-pa-sm q-ma-xs flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>Just now</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
               </div>
-              <div v-else-if="id.layer < currentLayer" class="my-before q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
+              <div v-else-if="id.layer < currentLayer" class="my-before q-pa-sm q-ma-xs flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>- {{ layersDiffInTime(id.layer, currentLayer) }}</div>
                 <div v-if="id.smh">{{ id.smh }}</div>
                 <div v-else-if="coinbase !== ''"><q-icon name="report" color="red-8" size="20px"/></div>
               </div>
-              <div v-else class="my-after q-pa-sm q-ma-xs rounded-borders flex column text-center justify-center">
+              <div v-else class="my-after q-pa-sm q-ma-xs flex column text-center justify-center">
                 <div><strong>{{ id.layer }}</strong></div>
                 <span v-for="(v, k) in id.nodes" :key="k" :style="nodeNameStyle(v)">{{ v }}</span>
                 <div>+ {{ layersDiffInTime(currentLayer, id.layer) }}</div>
@@ -311,7 +311,7 @@
 <style lang="scss">
 @use 'quasar/src/css/variables';
 body {
-  font-size: 13px;
+  font-size: 14px;
 }
 .q-btn {
   text-transform: none;
@@ -342,34 +342,31 @@ body {
 .body--dark {
   header {
     color: $grey-4;
-    background-color: $blue-grey-10;
+    background-color: #252429;
   }
   main {
     color: $grey-4;
-    background-color: $blue-grey-10;
+    background-color: #252429;
   }
   .my-info {
-    background-color: $light-blue-10;
+    background-color: rgba(170, 88, 177, 0.3);
   }
   .my-here {
-    background-color: $deep-orange-10;
-    box-shadow: inset 0 0 4px 4px rgba(38,50,56,0.5);
+    background-color: rgb(79, 71, 49);
   }
   .my-before {
-    background-color: $light-green-10;
-    box-shadow: inset 0 0 16px 8px rgba(0,128,0,0.75);
-    fill: $light-green-9;
+    background-color: rgba(101, 176, 66, 0.2);
+    fill: rgba(101, 176, 66, 0.2);
   }
   .my-after {
-    background-color: $light-green-10;
-    box-shadow: inset 0 0 16px 8px rgba(38,50,56,0.5);
-    fill: $light-green-10;
+    background-color: #323031;
+    fill: #323031;
   }
   .my-footer {
-    background-color: $blue-grey-10;
+    background-color: #252429;
   }
   .q-drawer {
-    background-color: $blue-grey-10;
+    background-color: #252429;
   }
 }
 </style>
@@ -829,10 +826,10 @@ const nodeNameStyle = (n:string) => {
   const c = nodeColor(n)
   return Dark.isActive ?
     (c ?
-      {borderColor: c, borderWidth: '3px', borderRadius: '12px', borderStyle: 'solid', padding: '1px 7px 1px 7px', lineHeight: '14px'} :
+      {borderColor: c, borderWidth: '2px', borderRadius: '12px', borderStyle: 'solid', padding: '1px 7px 1px 7px', lineHeight: '15px'} :
       {borderRadius: '12px', padding: '4px 10px 4px 10px'}
     ) :
-    {backgroundColor: c, borderRadius: '12px', padding: '4px 10px 4px 10px', lineHeight: '14px'}
+    {backgroundColor: c, borderRadius: '12px', padding: '4px 10px 4px 10px', lineHeight: '15px'}
 }
 
 </script>
