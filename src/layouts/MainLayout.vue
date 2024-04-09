@@ -824,13 +824,27 @@ const potato = 'sm1qqqqqqq04h9wlpqgfj878kfumrfsk0h92u0sxjcmjjpux'
 
 const nodeNameStyle = (n:string) => {
   const c = nodeColor(n)
+  return c ?
+    {
+      backgroundColor: c,
+      borderRadius: '12px',
+      padding: '3px 9px 3px 9px',
+      lineHeight: '15px',
+      color: contrastingColor(c)
+    }
+      :
+    {
+      borderRadius: '12px',
+      padding: '4px 10px 4px 10px'
+    }
+}
 
-  return Dark.isActive ?
-    (c ?
-      {borderColor: c, borderWidth: '2px', borderRadius: '12px', borderStyle: 'solid', padding: '1px 7px 1px 7px', lineHeight: '15px'} :
-      {borderRadius: '12px', padding: '4px 10px 4px 10px'}
-    ) :
-    {backgroundColor: c, borderRadius: '12px', padding: '3px 9px 3px 9px', lineHeight: '15px'}
+const contrastingColor = (hex:string) => {
+  let [r, g, b] = hex
+    .replace(/^#?(?:(?:(..)(..)(..)(..)?)|(?:(.)(.)(.)(.)?))$/, '$1$5$5$2$6$6$3$7$7$4$8$8')
+    .match(/(..)/g)
+    .map(rgb => parseInt('0x' + rgb))
+  return ((~~(r*299) + ~~(g*587) + ~~(b*114))/1000) >= 128 ? '#000' : '#e0e0e0'
 }
 
 </script>
