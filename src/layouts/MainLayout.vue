@@ -407,7 +407,8 @@ events.push({time: new Date(eCurrentBegin + default12hOffsetMs), info: ['12h beg
 events.push({time: new Date(eCurrentBegin + default12hDurationMs2), info: ['12h end'], type: '12H'})
 events.push({time: new Date(eCurrentBegin + T24LateOffsetMs), info: ['T24L begin'], type: 'T24', link: 'https://discord.gg/HzyA2Z7EKW'})
 events.push({time: new Date(eCurrentBegin + T24LateDurationMs), info: ['T24L end'], type: 'T24'})
-events.push({time: new Date(eCurrentBegin + eDurationMs), info: ['108h end'], type: '12H'})
+//events.push({time: new Date(eCurrentBegin + eDurationMs), info: ['108h end'], type: '12H'})
+events.push({time: new Date(eCurrentBegin + eDurationMs), info: [`Epoch ${eCurrentNum+1}`]})
 
 const optE24 = ref(false)
 const opt12H = ref(false)
