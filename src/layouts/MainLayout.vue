@@ -6,7 +6,8 @@
         <q-btn flat @click="drawerLayers = true" icon="menu" size="25px" />
         <q-btn flat @click="drawerOptions = true" icon="settings" size="25px" />
         <q-space/>
-        <span class="text-subtitle1">SpaceMesh Lamba Chunks</span>
+        <span class="text-subtitle1 q-mr-sm">SpaceMesh Lamba Chunks</span>
+        <svg width="30px" height="30px" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--twemoji" preserveAspectRatio="xMidYMid meet"><path fill="#FFCC4D" d="M36 18c0 9.941-8.059 18-18 18S0 27.941 0 18S8.059 0 18 0s18 8.059 18 18"></path><path fill="#664500" d="M22 27c0 2.763-1.791 3-4 3c-2.21 0-4-.237-4-3c0-2.761 1.79-6 4-6c2.209 0 4 3.239 4 6zm8-12a.987.987 0 0 1-.371-.072c-5.229-2.091-7.372-5.241-7.461-5.374a1 1 0 0 1 1.662-1.113c.019.027 1.93 2.785 6.541 4.629A1 1 0 0 1 30 15zM6 15a1.001 1.001 0 0 1-.372-1.929c4.612-1.844 6.523-4.602 6.542-4.629a1.002 1.002 0 0 1 1.387-.27a.998.998 0 0 1 .275 1.383c-.089.133-2.232 3.283-7.46 5.374A1.015 1.015 0 0 1 6 15z"></path><path fill="#5DADEC" d="M24 16h4v19l-4-.046V16zM8 35l4-.046V16H8v19z"></path><path fill="#664500" d="M14.999 18c-.15 0-.303-.034-.446-.105c-3.512-1.756-7.07-.018-7.105 0a1 1 0 1 1-.895-1.789c.182-.09 4.498-2.197 8.895 0A1 1 0 0 1 14.999 18zm14 0c-.15 0-.303-.034-.446-.105c-3.513-1.756-7.07-.018-7.105 0a1 1 0 1 1-.895-1.789c.182-.09 4.501-2.196 8.895 0A1 1 0 0 1 28.999 18z"></path><ellipse fill="#5DADEC" cx="18" cy="34" rx="18" ry="2"></ellipse><ellipse fill="#E75A70" cx="18" cy="27" rx="3" ry="2"></ellipse></svg>
         <q-space/>
         <q-btn flat @click="Dark.toggle" :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="25px" />
         <q-btn v-if="table" flat @click="table = false" icon="format_list_numbered_rtl" size="25px" />
@@ -14,13 +15,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="drawerOptions"
-      :width="300"
-      behavior="mobile"
-      bordered
-      class="q-ma-sm text-center"
-    >
+    <q-drawer v-model="drawerOptions" :width="300" behavior="mobile" bordered class="q-ma-sm text-center">
       <q-scroll-area class="full-width full-height">
         <div class="column">
           <q-checkbox v-model="optE24" label="Team24Early" />
@@ -30,22 +25,11 @@
       </q-scroll-area>
     </q-drawer>
 
-    <q-drawer
-      v-model="drawerLayers"
-      :width="710"
-      behavior="mobile"
-      bordered
-      class="q-ma-sm text-center"
-    >
+    <q-drawer v-model="drawerLayers" :width="710" behavior="mobile" bordered class="q-ma-sm text-center">
     <q-scroll-area class="full-width full-height">
 
       <div class="row items-center no-wrap">
-        <q-input
-          v-model="coinbase"
-          label="coinbase sm1qqqqqqq... or several with any separator"
-          filled dense stack-label
-          class="full-width"
-        >
+        <q-input v-model="coinbase" label="coinbase sm1qqqqqqq... or several with any separator" filled dense stack-label class="full-width">
           <template v-slot:prepend>
             <q-icon name="account_balance_wallet" size="20px" :style="{color: coinbase ? '#217ad2' : '#636363'}" />
           </template>
@@ -63,12 +47,7 @@
                     load SM-Monitor config
                   </div>
                 </q-item-section>
-                <q-uploader
-                  v-show="false"
-                  ref="uploaderRef"
-                  accept=".json"
-                  @added="SMMFileAdded"
-                />
+                <q-uploader v-show="false" ref="uploaderRef" accept=".json" @added="SMMFileAdded" />
               </q-item>
               <q-item clickable @click="SMMDownload">
                 <q-item-section class="row no-wrap">
@@ -92,24 +71,12 @@
       </div>
 
       <div class="row items-center no-wrap" v-for="n in nodes" :key="n.serial">
-        <q-input
-          filled dense stack-label
-          v-model="n.node"
-          maxlength="10"
-          label="Node"
-          type="text"
-          :style="{width: '190px'}"
-        >
+        <q-input filled dense stack-label v-model="n.node" maxlength="10" label="Node" type="text" :style="{width: '190px'}">
           <template v-slot:prepend>
-            <q-icon
-              :name="n.show ? 'visibility' : 'visibility_off'"
-              :style="{color: n.show ? '#217ad2' : '#636363'}"
-              size="20px" class="cursor-pointer" @click="n.show = !n.show"
-            />
+            <q-icon :name="n.show ? 'visibility' : 'visibility_off'" :style="{color: n.show ? '#217ad2' : '#636363'}" size="20px" class="cursor-pointer" @click="n.show = !n.show" />
           </template>
           <template v-slot:append>
-            <q-icon name="palette" class="cursor-pointer -material-icons-outlined" size="20px"
-                    :style="{'color': n.color, 'text-shadow': n.color ? '0 2px 2px rgba(0,0,0,0.6)' : ''}">
+            <q-icon name="palette" class="cursor-pointer -material-icons-outlined" size="20px" :style="{'color': n.color, 'text-shadow': n.color ? '0 2px 2px rgba(0,0,0,0.6)' : ''}">
               <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                 <q-color v-model="n.color" />
               </q-popup-proxy>
@@ -117,14 +84,7 @@
             <q-icon name="close" v-if="n.color !== ''" flat class="cursor-pointer" @click="n.color = ''" />
           </template>
         </q-input>
-        <q-input
-          filled dense stack-label
-          v-model="n.layers"
-          label="Eligible for rewards in layers | proposal eligibility for an epoch"
-          type="text"
-          class="q-ma-xs"
-          style="width: 500px"
-        >
+        <q-input label="Eligible for rewards in layers | proposal eligibility for an epoch" filled dense stack-label v-model="n.layers" type="text" class="q-ma-xs" style="width: 500px">
           <template v-slot:append>
             <q-icon name="adjust" class="cursor-pointer" v-if="!isLayersOkay(n.layers)">
               <q-menu self="top middle" anchor="bottom middle">
@@ -163,6 +123,7 @@
 
         <template v-if="loading">
           <q-spinner size="100px" color="blue-8" />
+          {{ Math.round(fetchProgress * 100) }} %
         </template>
         <template v-else>
 
@@ -297,10 +258,7 @@
         <rect :x="edges.pos * 1000 - 1" y="0" :width="3" height="10" fill="black" />
         <rect :x="edges.pos * 1000" y="0" :width="(1-edges.pos) * 1000" height="10" class="my-after" />
         <g v-for="l in eligLayersIdList()" :key="l.layer">
-          <line
-            v-if="l.nodes && l.pos"
-            :x1="l.pos * 1000" y1="12" :x2="l.pos * 1000" y2="30" stroke="grey"
-          />
+          <line v-if="l.nodes && l.pos" :x1="l.pos * 1000" y1="12" :x2="l.pos * 1000" y2="30" stroke="grey" />
         </g>
       </svg>
     </q-footer>
@@ -614,8 +572,10 @@ const layersDiffInTime = (l0:number, l1:number) => {
 const nowDate = () => date.formatDate(Date.now(), 'YYYY-MM-DD')
 const nowTime = () => date.formatDate(Date.now(), 'HH:mm')
 
-const rewardsPerPage  = 2000
-const rewardsLimit    = 20000  // there can be more than one reward per layer, so more than 4032 per epoch, lets limit 20k
+const rewardsPerPage  = 100
+//const rewardsLimit    = 20000  // there can be more than one reward per layer, so more than 4032 per epoch, lets limit 20k
+const rewardsLimit    = 1000
+const fetchProgress = ref(0)
 
 const rewardsCheck = async () => {
 
@@ -625,56 +585,82 @@ const rewardsCheck = async () => {
   loading.value = true
 
   if ((coinbase.value || '').length > 0) {
-    const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
+    //const wallets = [ ... coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g)]
+    const wallets = Array.from(coinbase.value.matchAll(/sm1qqqqqq[0-9a-z]*/g), w => w[0])
     for (const w of wallets) {
 
       // before 72576
       /*
       const uri = `https://mainnet-explorer-3-api.spacemesh.network/accounts/${w}/rewards`
       let pageCount = 0
-      await fetch(uri)
-        .then(async index => {
+      await fetch(uri).then(async index => {
 
-          const j0 = await index.json()
-          pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
+        const j0 = await index.json()
+        pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
 
-          let p = pageCount
-          while (rewards.length <= rewardsLimit && p > 0) {
-            await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
-              .then(async chunk => {
-                const j1 = await chunk.json()
-                rewards = [ ... rewards, ... j1['data'] ]
-              })
-            p--
-          }
+        let p = pageCount
+        while (rewards.length <= rewardsLimit && p > 0) {
+          await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
+            .then(async chunk => {
+              const j1 = await chunk.json()
+              rewards = [ ... rewards, ... j1['data'] ]
+            })
+          p--
+        }
 
-        })
-        .catch(() => {
-          Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
-        })
+      }).catch(() => {
+        Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
+      })
       */
 
       // after 72576
       // pagination reversed
+      /*
       const uri = `https://mainnet-explorer-api.spacemesh.network/accounts/${w}/rewards`
       let pageCount = 0
-      await fetch(uri)
-        .then(async index => {
-          const j0 = await index.json()
-          pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
-          let p = 1
-          while (rewards.length <= rewardsLimit && p <= pageCount) {
-            await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
-              .then(async chunk => {
-                const j1 = await chunk.json()
-                rewards = [ ... rewards, ... j1['data'] ]
-              })
-            p++
-          }
-        })
-        .catch(() => {
-          Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
-        })
+      await fetch(uri).then(async index => {
+        const j0 = await index.json()
+        pageCount = Math.ceil(Number(j0['pagination']['totalCount']) / rewardsPerPage)
+        let p = 1
+        while (rewards.length <= rewardsLimit && p <= pageCount) {
+          await fetch(`${uri}?page=${p}&pagesize=${rewardsPerPage}`)
+            .then(async chunk => {
+              const j1 = await chunk.json()
+              rewards = [ ... rewards, ... j1['data'] ]
+            })
+          p++
+        }
+      }).catch(() => {
+        Notify.create({message: `failed to fetch wallet ${w} rewards from explorer`, color: 'red', position: 'top'})
+      })
+      */
+
+      // 2024-11-18, another API change, now maximum of rewardsPerPage is only 100 ...
+      // swagger-ui: https://mainnet-api-docs.spacemesh.network/index.html#/
+      await fetch(`https://mainnet-explorer-stats-api.spacemesh.network/account/${w}`).then(async response => {
+        if (!response.ok) throw Error(`rewards count status: ${response.status}`)
+        const rewards_count = (await response.json()).rewards_count
+        const chunks = Math.ceil(Math.min(rewards_count, rewardsLimit) / rewardsPerPage)
+        for (let c = 0; c < chunks; c++) {
+          fetchProgress.value = c / chunks
+          await fetch('https://mainnet-api.spacemesh.network/spacemesh.v2alpha1.RewardService/List', {method: 'POST',
+            body: JSON.stringify({
+              coinbase: w,
+              limit: rewardsPerPage,
+              offset: c * rewardsPerPage,
+              sort_order: 1
+            })
+          }).then(async response => {
+            if (!response.ok) throw Error(`rewards chunk status: ${response.status}`)
+            const data = await response.json()
+            rewards = [ ... rewards, ... data.rewards.map((l:any) => ({layer: l.layer, total: l.total})) ]
+          }).catch(reason => {
+            throw Error(`rewards chunk error: ${reason.message}`)
+          })
+        }
+      }).catch(reason => {
+        Notify.create({message: `failed to fetch wallet ${w} rewards: ${reason.message}`, color: 'red', position: 'top'})
+      })
 
     }
   }
@@ -711,9 +697,7 @@ const SMMFileAdded = async (files:readonly unknown[]) => {
   let j:any[] = []
   try {
     j = JSON.parse(content)
-    if (!Array.isArray(j)) {
-      throw Error('array expected')
-    }
+    if (!Array.isArray(j)) throw Error('array expected')
     // todo: check more
   } catch (e) {
     Notify.create({message: 'bad json', color: 'red', position: 'top'})
