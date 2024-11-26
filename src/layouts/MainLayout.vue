@@ -653,7 +653,7 @@ const rewardsCheck = async () => {
           }).then(async response => {
             if (!response.ok) throw Error(`rewards chunk status: ${response.status}`)
             const data = await response.json()
-            rewards = [ ... rewards, ... data.rewards.map((l:any) => ({layer: l.layer, total: l.total})) ]
+            rewards = [ ... rewards, ... data.rewards.map((l:{layer:number, total:number}) => ({layer: l.layer, total: Number(l.total)})) ]
           }).catch(reason => {
             throw Error(`rewards chunk error: ${reason.message}`)
           })
@@ -666,7 +666,7 @@ const rewardsCheck = async () => {
   }
 
   const grouped:{layer:number, total:number}[] = []
-  let last
+  let last:{layer:number, total:number}
   rewards.forEach(r => {
     if (last && last?.layer === r?.layer) {
       last.total += r?.total
@@ -694,7 +694,7 @@ const SMMFileAdded = async (files:readonly unknown[]) => {
   const content = await (files[0] as Blob).text()
   console.log(content)
 
-  let j:any[] = []
+  let j:{nodeName: string, eligibilities:string}[] = []
   try {
     j = JSON.parse(content)
     if (!Array.isArray(j)) throw Error('array expected')
